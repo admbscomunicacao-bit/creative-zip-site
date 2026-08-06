@@ -4,12 +4,13 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
 import { stories } from "@/data/stories";
 
-type Search = { q?: string };
+type Search = { q?: string | undefined };
 
 export const Route = createFileRoute("/busca")({
   validateSearch: (search: Record<string, unknown>): Search => ({
-    q: typeof search.q === "string" ? search.q : undefined,
+    q: typeof search["q"] === "string" ? search["q"] : undefined,
   }),
+
   head: () => ({
     meta: [
       { title: "Pesquisa — Canal Transforma" },
