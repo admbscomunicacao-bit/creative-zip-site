@@ -1,25 +1,22 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { StoryCard, SectionTitle } from "@/components/StoryCard";
-import { sectionBySlug, stories } from "@/data/stories";
+import { ListingCard } from "@/components/StoryCard";
+import { sectionBySlug, sections, stories } from "@/data/stories";
 
 export const Route = createFileRoute("/editoria/$section")({
-  loader: ({ params }) => {
-    const section = sectionBySlug(params.section);
-    if (!section) throw notFound();
-    return { name: section.name };
-  },
-  head: ({ loaderData }) => {
-    const name = loaderData?.name ?? "Editoria";
-    const title = `${name} — Canal Transforma`;
-    const description = `Últimas notícias de ${name} em Catanduva, apuradas pela redação do Canal Transforma.`;
+  head: ({ params }) => {
+    const s = sectionBySlug(params.section);
+    const title = `${s?.name ?? "Editoria"} — Canal Transforma`;
+    const description = `Reportagens de ${s?.name ?? "Catanduva"} no Canal Transforma: informação local com apuração e contexto.`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
     };
   },
@@ -27,20 +24,44 @@ export const Route = createFileRoute("/editoria/$section")({
 });
 
 function SectionPage() {
-  const { name } = Route.useLoaderData();
-  const list = stories.filter((s) => s.section === name);
+  const { section } = Route.useParams();
+  const meta = sectionBySlug(section);
+  const list = stories.filter((s) => s.section === meta?.name);
 
   return (
     <>
       <SiteHeader />
-      <main className="shell listing">
-        <SectionTitle eyebrow="Editoria" title={name} />
-        <section className="grid">
-          {list.map((s) => (
-            <StoryCard story={s} key={s.slug} />
-          ))}
-        </section>
-      </main>
+      <section className="listing-shell">
+        <p className="eyebrow">Editoria</p>
+        <h1>{meta?.name ?? "Editoria"}</h1>
+        <p className="listing-intro">
+          Acompanhe as reportagens, informações úteis e conversas que movimentam Catanduva.
+        </p>
+        {list.length === 0 ? (
+          <p className="listing-intro">Ainda não há reportagens publicadas nesta editoria.</p>
+        ) : (
+          <div className="listing-grid">
+            {list.map((s) => (
+              <ListingCard key={s.slug} story={s} />
+            ))}
+          </div>
+        )}
+        <div className="section-links">
+          {sections
+            .filter((s) => s.slug !== section)
+            .map((s) => (
+              <Link
+                key={s.slug}
+                to="/editoria/$section"
+                params={{ section: s.slug }}
+                className={`section-link section-${s.color}`}
+              >
+                {s.name}
+                <b>→</b>
+              </Link>
+            ))}
+        </div>
+      </section>
       <SiteFooter />
     </>
   );
