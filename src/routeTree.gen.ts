@@ -17,6 +17,9 @@ import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
 import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
 import { Route as EditorialConfirmarEmailRouteImport } from './routes/editorial.confirmar-email'
 import { Route as EditorialCriarContaRouteImport } from './routes/editorial.criar-conta'
+import { Route as EditorialEsqueciSenhaRouteImport } from './routes/editorial.esqueci-senha'
+import { Route as EditorialPerfilRouteImport } from './routes/editorial.perfil'
+import { Route as EditorialRedefinirSenhaRouteImport } from './routes/editorial.redefinir-senha'
 import { Route as NoticiaSlugRouteImport } from './routes/noticia.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +62,21 @@ const EditorialCriarContaRoute = EditorialCriarContaRouteImport.update({
   path: '/editorial/criar-conta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorialEsqueciSenhaRoute = EditorialEsqueciSenhaRouteImport.update({
+  id: '/editorial/esqueci-senha',
+  path: '/editorial/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialPerfilRoute = EditorialPerfilRouteImport.update({
+  id: '/editorial/perfil',
+  path: '/editorial/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialRedefinirSenhaRoute = EditorialRedefinirSenhaRouteImport.update({
+  id: '/editorial/redefinir-senha',
+  path: '/editorial/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoticiaSlugRoute = NoticiaSlugRouteImport.update({
   id: '/noticia/$slug',
   path: '/noticia/$slug',
@@ -73,6 +91,9 @@ export interface FileRoutesByFullPath {
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
+  '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial/': typeof EditorialIndexRoute
 }
@@ -84,6 +105,9 @@ export interface FileRoutesByTo {
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
+  '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial': typeof EditorialIndexRoute
 }
@@ -96,6 +120,9 @@ export interface FileRoutesById {
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
+  '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial/': typeof EditorialIndexRoute
 }
@@ -109,6 +136,9 @@ export interface FileRouteTypes {
     | '/editoria/$section'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
+    | '/editorial/esqueci-senha'
+    | '/editorial/perfil'
+    | '/editorial/redefinir-senha'
     | '/noticia/$slug'
     | '/editorial/'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +150,9 @@ export interface FileRouteTypes {
     | '/editoria/$section'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
+    | '/editorial/esqueci-senha'
+    | '/editorial/perfil'
+    | '/editorial/redefinir-senha'
     | '/noticia/$slug'
     | '/editorial'
   id:
@@ -131,6 +164,9 @@ export interface FileRouteTypes {
     | '/editoria/$section'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
+    | '/editorial/esqueci-senha'
+    | '/editorial/perfil'
+    | '/editorial/redefinir-senha'
     | '/noticia/$slug'
     | '/editorial/'
   fileRoutesById: FileRoutesById
@@ -143,6 +179,9 @@ export interface RootRouteChildren {
   EditoriaSectionRoute: typeof EditoriaSectionRoute
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
   EditorialCriarContaRoute: typeof EditorialCriarContaRoute
+  EditorialEsqueciSenhaRoute: typeof EditorialEsqueciSenhaRoute
+  EditorialPerfilRoute: typeof EditorialPerfilRoute
+  EditorialRedefinirSenhaRoute: typeof EditorialRedefinirSenhaRoute
   NoticiaSlugRoute: typeof NoticiaSlugRoute
   EditorialIndexRoute: typeof EditorialIndexRoute
 }
@@ -205,6 +244,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorialCriarContaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editorial/esqueci-senha': {
+      id: '/editorial/esqueci-senha'
+      path: '/editorial/esqueci-senha'
+      fullPath: '/editorial/esqueci-senha'
+      preLoaderRoute: typeof EditorialEsqueciSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/perfil': {
+      id: '/editorial/perfil'
+      path: '/editorial/perfil'
+      fullPath: '/editorial/perfil'
+      preLoaderRoute: typeof EditorialPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/redefinir-senha': {
+      id: '/editorial/redefinir-senha'
+      path: '/editorial/redefinir-senha'
+      fullPath: '/editorial/redefinir-senha'
+      preLoaderRoute: typeof EditorialRedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/noticia/$slug': {
       id: '/noticia/$slug'
       path: '/noticia/$slug'
@@ -223,6 +283,9 @@ const rootRouteChildren: RootRouteChildren = {
   EditoriaSectionRoute: EditoriaSectionRoute,
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
   EditorialCriarContaRoute: EditorialCriarContaRoute,
+  EditorialEsqueciSenhaRoute: EditorialEsqueciSenhaRoute,
+  EditorialPerfilRoute: EditorialPerfilRoute,
+  EditorialRedefinirSenhaRoute: EditorialRedefinirSenhaRoute,
   NoticiaSlugRoute: NoticiaSlugRoute,
   EditorialIndexRoute: EditorialIndexRoute,
 }
