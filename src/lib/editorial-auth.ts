@@ -39,8 +39,8 @@ export function friendlyAuthError(message: string): string {
     return "Já existe uma conta com este e-mail.";
   if (m.includes("pwned") || m.includes("weak"))
     return "Esta senha aparece em vazamentos conhecidos. Escolha outra.";
-  if (m.includes("token has expired") || m.includes("expired"))
-    return "O código expirou. Solicite um novo código.";
+  if (m.includes("expired") || (m.includes("token") && m.includes("invalid")))
+    return "Código inválido ou expirado. Solicite um novo código.";
   if (m.includes("invalid") && m.includes("token")) return "Código inválido. Verifique e tente novamente.";
   if (m.includes("rate limit") || m.includes("too many"))
     return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
