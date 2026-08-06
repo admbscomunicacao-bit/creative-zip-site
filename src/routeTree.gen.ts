@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BuscaRouteImport } from './routes/busca'
-import { Route as EditorialRouteImport } from './routes/editorial'
 import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
@@ -25,11 +24,6 @@ const IndexRoute = IndexRouteImport.update({
 const BuscaRoute = BuscaRouteImport.update({
   id: '/busca',
   path: '/busca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EditorialRoute = EditorialRouteImport.update({
-  id: '/editorial',
-  path: '/editorial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoticiasDoDiaRoute = NoticiasDoDiaRouteImport.update({
@@ -56,7 +50,6 @@ const NoticiaSlugRoute = NoticiaSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/busca': typeof BuscaRoute
-  '/editorial': typeof EditorialRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -65,7 +58,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/busca': typeof BuscaRoute
-  '/editorial': typeof EditorialRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -75,7 +67,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/busca': typeof BuscaRoute
-  '/editorial': typeof EditorialRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -86,7 +77,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/busca'
-    | '/editorial'
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
@@ -95,7 +85,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/busca'
-    | '/editorial'
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
@@ -104,7 +93,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/busca'
-    | '/editorial'
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
@@ -114,7 +102,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuscaRoute: typeof BuscaRoute
-  EditorialRoute: typeof EditorialRoute
   NoticiasDoDiaRoute: typeof NoticiasDoDiaRoute
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
@@ -135,13 +122,6 @@ declare module '@tanstack/react-router' {
       path: '/busca'
       fullPath: '/busca'
       preLoaderRoute: typeof BuscaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/editorial': {
-      id: '/editorial'
-      path: '/editorial'
-      fullPath: '/editorial'
-      preLoaderRoute: typeof EditorialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/noticias-do-dia': {
@@ -178,7 +158,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuscaRoute: BuscaRoute,
-  EditorialRoute: EditorialRoute,
   NoticiasDoDiaRoute: NoticiasDoDiaRoute,
   NoticiasRecentesRoute: NoticiasRecentesRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,
