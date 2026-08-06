@@ -1,8 +1,14 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, Search, X, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png.asset.json";
 import { sections } from "@/data/stories";
+
+const navClass: Record<string, string> = {
+  cidade: "nav-cidade",
+  politica: "nav-politica",
+  servicos: "nav-servicos",
+  esportes: "nav-esportes",
+};
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -16,58 +22,80 @@ export function SiteHeader() {
   };
 
   return (
-    <>
-      <header>
-        <Link to="/" className="logo" aria-label="Canal Transforma — página inicial">
+    <div className="site-chrome">
+      <header className="site-header">
+        <Link to="/" className="brand" aria-label="Canal Transforma, página inicial">
           <img src={logo.url} alt="Canal Transforma" />
         </Link>
         <div className="header-actions">
-          <form className="search" onSubmit={submit} role="search">
-            <Search size={17} aria-hidden="true" />
+          <form className="header-search" role="search" onSubmit={submit}>
+            <label className="sr-only" htmlFor="site-search">
+              Pesquisar notícias
+            </label>
+            <span className="search-icon" aria-hidden="true">
+              ⌕
+            </span>
             <input
+              id="site-search"
+              type="search"
+              placeholder="Pesquisar"
+              autoComplete="off"
+              name="q"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              placeholder="Pesquisar"
-              aria-label="Pesquisar notícias"
             />
           </form>
-          <button className="menu-button" aria-label="Abrir menu" onClick={() => setOpen(true)}>
-            <Menu size={20} aria-hidden="true" />
+          <button
+            type="button"
+            className="menu-toggle"
+            aria-label="Abrir menu"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            onClick={() => setOpen(true)}
+          >
+            <i />
+            <i />
+            <i />
           </button>
         </div>
       </header>
       <div className="topline">
         Catanduva, SP <span>•</span> Jornalismo local verificado
       </div>
-
-      {open && (
-        <div className="drawer-wrap">
-          <button className="backdrop" onClick={() => setOpen(false)} aria-label="Fechar menu" />
-          <aside className="drawer">
-            <div>
-              <b>Menu</b>
-              <button onClick={() => setOpen(false)} aria-label="Fechar menu">
-                <X size={22} aria-hidden="true" />
-              </button>
-            </div>
+      <div className={`menu-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
+        <button
+          type="button"
+          className="menu-backdrop"
+          aria-label="Fechar menu"
+          tabIndex={-1}
+          onClick={() => setOpen(false)}
+        />
+        <aside className="menu-panel" id="site-menu" aria-label="Menu principal">
+          <div className="menu-panel-head">
+            <span>Menu</span>
+            <button type="button" aria-label="Fechar menu" onClick={() => setOpen(false)}>
+              ×
+            </button>
+          </div>
+          <nav aria-label="Editorias">
             {sections.map((s) => (
               <Link
                 key={s.slug}
                 to="/editoria/$section"
                 params={{ section: s.slug }}
-                className={`nav-link ${s.color}`}
+                className={`menu-link ${navClass[s.slug]}`}
                 onClick={() => setOpen(false)}
               >
                 {s.name}
-                <ArrowRight size={20} aria-hidden="true" />
+                <b>→</b>
               </Link>
             ))}
-            <Link to="/editorial" className="editorial-link" onClick={() => setOpen(false)}>
-              Entrar na área editorial <ArrowRight size={20} aria-hidden="true" />
-            </Link>
-          </aside>
-        </div>
-      )}
-    </>
+          </nav>
+          <Link to="/editorial" className="menu-editorial" onClick={() => setOpen(false)}>
+            Entrar na área editorial <b>→</b>
+          </Link>
+        </aside>
+      </div>
+    </div>
   );
 }
