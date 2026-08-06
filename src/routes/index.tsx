@@ -34,8 +34,9 @@ function Home() {
     return () => clearInterval(id);
   }, [featured.length]);
 
-  const active = featured[index];
+  const active = featured[index] ?? featured[0]!;
   const daily = stories.slice(0, 4);
+  const lead = daily[0]!;
 
   return (
     <>
@@ -86,7 +87,7 @@ function Home() {
 
         <SectionTitle eyebrow="Seleção diária" title="Notícias do dia" />
         <section className="daily">
-          <StoryCard story={daily[0]} />
+          <StoryCard story={lead} />
           <div>
             {daily.slice(1).map((s) => (
               <StoryCard story={s} small key={s.slug} />
