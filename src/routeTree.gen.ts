@@ -14,6 +14,9 @@ import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
+import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
+import { Route as EditorialConfirmarEmailRouteImport } from './routes/editorial.confirmar-email'
+import { Route as EditorialCriarContaRouteImport } from './routes/editorial.criar-conta'
 import { Route as NoticiaSlugRouteImport } from './routes/noticia.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +44,21 @@ const EditoriaSectionRoute = EditoriaSectionRouteImport.update({
   path: '/editoria/$section',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorialIndexRoute = EditorialIndexRouteImport.update({
+  id: '/editorial/',
+  path: '/editorial/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialConfirmarEmailRoute = EditorialConfirmarEmailRouteImport.update({
+  id: '/editorial/confirmar-email',
+  path: '/editorial/confirmar-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialCriarContaRoute = EditorialCriarContaRouteImport.update({
+  id: '/editorial/criar-conta',
+  path: '/editorial/criar-conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoticiaSlugRoute = NoticiaSlugRouteImport.update({
   id: '/noticia/$slug',
   path: '/noticia/$slug',
@@ -53,7 +71,10 @@ export interface FileRoutesByFullPath {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
+  '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
+  '/editorial/': typeof EditorialIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +82,10 @@ export interface FileRoutesByTo {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
+  '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
+  '/editorial': typeof EditorialIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +94,10 @@ export interface FileRoutesById {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
+  '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
+  '/editorial/': typeof EditorialIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +107,10 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/confirmar-email'
+    | '/editorial/criar-conta'
     | '/noticia/$slug'
+    | '/editorial/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +118,10 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/confirmar-email'
+    | '/editorial/criar-conta'
     | '/noticia/$slug'
+    | '/editorial'
   id:
     | '__root__'
     | '/'
@@ -96,7 +129,10 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/confirmar-email'
+    | '/editorial/criar-conta'
     | '/noticia/$slug'
+    | '/editorial/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +141,10 @@ export interface RootRouteChildren {
   NoticiasDoDiaRoute: typeof NoticiasDoDiaRoute
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
+  EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
+  EditorialCriarContaRoute: typeof EditorialCriarContaRoute
   NoticiaSlugRoute: typeof NoticiaSlugRoute
+  EditorialIndexRoute: typeof EditorialIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +184,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditoriaSectionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editorial/': {
+      id: '/editorial/'
+      path: '/editorial'
+      fullPath: '/editorial/'
+      preLoaderRoute: typeof EditorialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/confirmar-email': {
+      id: '/editorial/confirmar-email'
+      path: '/editorial/confirmar-email'
+      fullPath: '/editorial/confirmar-email'
+      preLoaderRoute: typeof EditorialConfirmarEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/criar-conta': {
+      id: '/editorial/criar-conta'
+      path: '/editorial/criar-conta'
+      fullPath: '/editorial/criar-conta'
+      preLoaderRoute: typeof EditorialCriarContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/noticia/$slug': {
       id: '/noticia/$slug'
       path: '/noticia/$slug'
@@ -161,7 +221,10 @@ const rootRouteChildren: RootRouteChildren = {
   NoticiasDoDiaRoute: NoticiasDoDiaRoute,
   NoticiasRecentesRoute: NoticiasRecentesRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,
+  EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
+  EditorialCriarContaRoute: EditorialCriarContaRoute,
   NoticiaSlugRoute: NoticiaSlugRoute,
+  EditorialIndexRoute: EditorialIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

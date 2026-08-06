@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { emailSchema, friendlyAuthError } from "@/lib/editorial-auth";
 import { ensureEditorialProfile } from "@/lib/editorial.functions";
 
-type Search = { email?: string };
+type Search = { email?: string | undefined };
 
 export const Route = createFileRoute("/editorial/confirmar-email")({
   validateSearch: (search: Record<string, unknown>): Search => ({
