@@ -18,8 +18,12 @@ import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
 import { Route as EditorialConfirmarEmailRouteImport } from './routes/editorial.confirmar-email'
 import { Route as EditorialCriarContaRouteImport } from './routes/editorial.criar-conta'
 import { Route as EditorialEsqueciSenhaRouteImport } from './routes/editorial.esqueci-senha'
+import { Route as EditorialMfaRouteImport } from './routes/editorial.mfa'
 import { Route as EditorialPerfilRouteImport } from './routes/editorial.perfil'
+import { Route as EditorialRedacaoRouteImport } from './routes/editorial.redacao'
 import { Route as EditorialRedefinirSenhaRouteImport } from './routes/editorial.redefinir-senha'
+import { Route as EditorialSegurancaRouteImport } from './routes/editorial.seguranca'
+import { Route as EditorialUsuariosRouteImport } from './routes/editorial.usuarios'
 import { Route as NoticiaSlugRouteImport } from './routes/noticia.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -67,14 +71,34 @@ const EditorialEsqueciSenhaRoute = EditorialEsqueciSenhaRouteImport.update({
   path: '/editorial/esqueci-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorialMfaRoute = EditorialMfaRouteImport.update({
+  id: '/editorial/mfa',
+  path: '/editorial/mfa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditorialPerfilRoute = EditorialPerfilRouteImport.update({
   id: '/editorial/perfil',
   path: '/editorial/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorialRedacaoRoute = EditorialRedacaoRouteImport.update({
+  id: '/editorial/redacao',
+  path: '/editorial/redacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditorialRedefinirSenhaRoute = EditorialRedefinirSenhaRouteImport.update({
   id: '/editorial/redefinir-senha',
   path: '/editorial/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialSegurancaRoute = EditorialSegurancaRouteImport.update({
+  id: '/editorial/seguranca',
+  path: '/editorial/seguranca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialUsuariosRoute = EditorialUsuariosRouteImport.update({
+  id: '/editorial/usuarios',
+  path: '/editorial/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoticiaSlugRoute = NoticiaSlugRouteImport.update({
@@ -92,8 +116,12 @@ export interface FileRoutesByFullPath {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
+  '/editorial/seguranca': typeof EditorialSegurancaRoute
+  '/editorial/usuarios': typeof EditorialUsuariosRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial/': typeof EditorialIndexRoute
 }
@@ -106,8 +134,12 @@ export interface FileRoutesByTo {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
+  '/editorial/seguranca': typeof EditorialSegurancaRoute
+  '/editorial/usuarios': typeof EditorialUsuariosRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial': typeof EditorialIndexRoute
 }
@@ -121,8 +153,12 @@ export interface FileRoutesById {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
+  '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
+  '/editorial/seguranca': typeof EditorialSegurancaRoute
+  '/editorial/usuarios': typeof EditorialUsuariosRoute
   '/noticia/$slug': typeof NoticiaSlugRoute
   '/editorial/': typeof EditorialIndexRoute
 }
@@ -137,8 +173,12 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
+    | '/editorial/redacao'
     | '/editorial/redefinir-senha'
+    | '/editorial/seguranca'
+    | '/editorial/usuarios'
     | '/noticia/$slug'
     | '/editorial/'
   fileRoutesByTo: FileRoutesByTo
@@ -151,8 +191,12 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
+    | '/editorial/redacao'
     | '/editorial/redefinir-senha'
+    | '/editorial/seguranca'
+    | '/editorial/usuarios'
     | '/noticia/$slug'
     | '/editorial'
   id:
@@ -165,8 +209,12 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
+    | '/editorial/redacao'
     | '/editorial/redefinir-senha'
+    | '/editorial/seguranca'
+    | '/editorial/usuarios'
     | '/noticia/$slug'
     | '/editorial/'
   fileRoutesById: FileRoutesById
@@ -180,8 +228,12 @@ export interface RootRouteChildren {
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
   EditorialCriarContaRoute: typeof EditorialCriarContaRoute
   EditorialEsqueciSenhaRoute: typeof EditorialEsqueciSenhaRoute
+  EditorialMfaRoute: typeof EditorialMfaRoute
   EditorialPerfilRoute: typeof EditorialPerfilRoute
+  EditorialRedacaoRoute: typeof EditorialRedacaoRoute
   EditorialRedefinirSenhaRoute: typeof EditorialRedefinirSenhaRoute
+  EditorialSegurancaRoute: typeof EditorialSegurancaRoute
+  EditorialUsuariosRoute: typeof EditorialUsuariosRoute
   NoticiaSlugRoute: typeof NoticiaSlugRoute
   EditorialIndexRoute: typeof EditorialIndexRoute
 }
@@ -251,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorialEsqueciSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editorial/mfa': {
+      id: '/editorial/mfa'
+      path: '/editorial/mfa'
+      fullPath: '/editorial/mfa'
+      preLoaderRoute: typeof EditorialMfaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editorial/perfil': {
       id: '/editorial/perfil'
       path: '/editorial/perfil'
@@ -258,11 +317,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorialPerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editorial/redacao': {
+      id: '/editorial/redacao'
+      path: '/editorial/redacao'
+      fullPath: '/editorial/redacao'
+      preLoaderRoute: typeof EditorialRedacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editorial/redefinir-senha': {
       id: '/editorial/redefinir-senha'
       path: '/editorial/redefinir-senha'
       fullPath: '/editorial/redefinir-senha'
       preLoaderRoute: typeof EditorialRedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/seguranca': {
+      id: '/editorial/seguranca'
+      path: '/editorial/seguranca'
+      fullPath: '/editorial/seguranca'
+      preLoaderRoute: typeof EditorialSegurancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/usuarios': {
+      id: '/editorial/usuarios'
+      path: '/editorial/usuarios'
+      fullPath: '/editorial/usuarios'
+      preLoaderRoute: typeof EditorialUsuariosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/noticia/$slug': {
@@ -284,8 +364,12 @@ const rootRouteChildren: RootRouteChildren = {
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
   EditorialCriarContaRoute: EditorialCriarContaRoute,
   EditorialEsqueciSenhaRoute: EditorialEsqueciSenhaRoute,
+  EditorialMfaRoute: EditorialMfaRoute,
   EditorialPerfilRoute: EditorialPerfilRoute,
+  EditorialRedacaoRoute: EditorialRedacaoRoute,
   EditorialRedefinirSenhaRoute: EditorialRedefinirSenhaRoute,
+  EditorialSegurancaRoute: EditorialSegurancaRoute,
+  EditorialUsuariosRoute: EditorialUsuariosRoute,
   NoticiaSlugRoute: NoticiaSlugRoute,
   EditorialIndexRoute: EditorialIndexRoute,
 }
