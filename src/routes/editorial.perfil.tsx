@@ -93,7 +93,7 @@ function ProfilePage() {
     }
 
     setAvatarPath(path);
-    const { data: preview } = supabase.storage.from("avatars").createSignedUrl(path, 3600);
+    const { data: preview } = await supabase.storage.from("avatars").createSignedUrl(path, 3600);
     setAvatarPreview(preview?.signedUrl ?? null);
     setBusy(false);
   };
