@@ -77,7 +77,7 @@ function Home() {
               >
                 <p className="eyebrow">Em destaque</p>
                 <p className={`story-section section-${s.color}`}>{s.section}</p>
-                <h1>{s.title}</h1>
+                <h2 className="carousel-title">{s.title}</h2>
                 <p>{s.summary}</p>
                 <Link
                   to="/noticia/$slug"
