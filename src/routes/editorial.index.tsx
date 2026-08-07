@@ -17,8 +17,7 @@ export const Route = createFileRoute("/editorial/")({
       { title: "Área editorial — Canal Transforma" },
       {
         name: "description",
-        content:
-          "Acesso restrito da redação do Canal Transforma: entre com seu e-mail, senha e o código de verificação enviado por e-mail.",
+        content: "Acesso restrito da redação do Canal Transforma: entre com seu e-mail e senha.",
       },
       { property: "og:title", content: "Área editorial — Canal Transforma" },
       {
@@ -43,8 +42,6 @@ function EditorialLogin() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
-  const [codeStep, setCodeStep] = useState(false);
-  const [code, setCode] = useState("");
 
   const goToAccount = async (account: EditorialAccount | null) => {
     if (!account) {
@@ -57,24 +54,6 @@ function EditorialLogin() {
       return;
     }
     await navigate({ to: nextEditorialStep(account) });
-  };
-
-  const sendCode = async (target: string) => {
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: target,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/editorial/entrar`,
-      },
-    });
-    if (otpError) {
-      setError(friendlyAuthError(otpError.message));
-      return false;
-    }
-    setInfo(
-      "Enviamos um código de verificação para o seu e-mail. Ele expira em 10 minutos — confira também a caixa de spam.",
-    );
-    return true;
   };
 
   const submitPassword = async (e: React.FormEvent) => {
@@ -102,35 +81,6 @@ function EditorialLogin() {
       await logEvent({ data: { action: "login_success" } }).catch(() => undefined);
 
       const account = (await fetchAccount()) as EditorialAccount | null;
-      if (!account || account.status !== "approved") {
-        await goToAccount(account);
-        return;
-      }
-      // Segunda etapa: código de seis dígitos enviado por e-mail.
-      if (await sendCode(parsedEmail.data)) setCodeStep(true);
-    } catch (err) {
-      setError(friendlyAuthError(err instanceof Error ? err.message : String(err)));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: code.trim(),
-        type: "email",
-      });
-      if (verifyError) {
-        setError(friendlyAuthError(verifyError.message));
-        return;
-      }
-      await logEvent({ data: { action: "mfa_success" } }).catch(() => undefined);
-      const account = (await fetchAccount()) as EditorialAccount | null;
       await goToAccount(account);
     } catch (err) {
       setError(friendlyAuthError(err instanceof Error ? err.message : String(err)));
@@ -145,91 +95,41 @@ function EditorialLogin() {
       title="Seu acesso começa aqui."
       intro="Entre com sua conta individual para criar, revisar e administrar as publicações do Canal Transforma."
     >
-      {codeStep ? (
-        <form className="login-form" onSubmit={submitCode}>
-          <label>
-            Código enviado por e-mail
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="000000"
-              value={code}
-              onChange={(ev) => setCode(ev.target.value.replace(/\D/g, ""))}
-              required
-            />
-          </label>
-          <button className="login-submit" type="submit" disabled={busy}>
-            {busy ? "Verificando..." : "Verificar código"} <b>→</b>
-          </button>
-          {info && <p className="login-message">{info}</p>}
-          {error && <p className="login-message login-error">{error}</p>}
-          <div className="editorial-links">
-            <button
-              type="button"
-              className="editorial-link-button"
-              disabled={busy}
-              onClick={async () => {
-                setError("");
-                setBusy(true);
-                await sendCode(email.trim());
-                setBusy(false);
-              }}
-            >
-              Reenviar código
-            </button>
-            <button
-              type="button"
-              className="editorial-link-button"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                setCodeStep(false);
-                setCode("");
-                setInfo("");
-              }}
-            >
-              Entrar com outra conta
-            </button>
-          </div>
-        </form>
-      ) : (
-        <form className="login-form" onSubmit={submitPassword}>
-          <label>
-            E-mail
-            <input
-              type="email"
-              placeholder="seuemail@canaltransforma.com.br"
-              required
-              name="email"
-              autoComplete="email"
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
-            />
-          </label>
-          <label>
-            Senha
-            <input
-              type="password"
-              placeholder="Digite sua senha"
-              required
-              name="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(ev) => setPassword(ev.target.value)}
-            />
-          </label>
-          <button className="login-submit" type="submit" disabled={busy}>
-            {busy ? "Entrando..." : "Entrar"} <b>→</b>
-          </button>
-          {info && <p className="login-message">{info}</p>}
-          {error && <p className="login-message login-error">{error}</p>}
-          <div className="editorial-links">
-            <Link to="/editorial/criar-conta">Criar conta</Link>
-            <Link to="/editorial/esqueci-senha">Esqueci minha senha</Link>
-          </div>
-        </form>
-      )}
+      <form className="login-form" onSubmit={submitPassword}>
+        <label>
+          E-mail
+          <input
+            type="email"
+            placeholder="seuemail@canaltransforma.com.br"
+            required
+            name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(ev) => setEmail(ev.target.value)}
+          />
+        </label>
+        <label>
+          Senha
+          <input
+            type="password"
+            placeholder="Digite sua senha"
+            required
+            name="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(ev) => setPassword(ev.target.value)}
+          />
+        </label>
+        <button className="login-submit" type="submit" disabled={busy}>
+          {busy ? "Entrando..." : "Entrar"} <b>→</b>
+        </button>
+        {info && <p className="login-message">{info}</p>}
+        {error && <p className="login-message login-error">{error}</p>}
+        <div className="editorial-links">
+          <Link to="/editorial/criar-conta">Criar conta</Link>
+          <Link to="/editorial/esqueci-senha">Esqueci minha senha</Link>
+        </div>
+      </form>
     </EditorialShell>
   );
 }
