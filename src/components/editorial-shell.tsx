@@ -61,7 +61,7 @@ export function nextEditorialStep(account: EditorialAccount | null): string {
   if (!account) return "/editorial";
   if (account.status === "blocked") return "/editorial/perfil";
   if (account.status === "pending") return "/editorial/perfil";
-  if (!account.mfaEnrolledAt) return "/editorial/mfa";
+  // Segunda etapa por código de e-mail: sem ela, volta para o login.
   if (!account.mfaVerified) return "/editorial";
   return "/editorial/redacao";
 }
