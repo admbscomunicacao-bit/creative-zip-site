@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { EditorialShell } from "@/components/editorial-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { emailSchema, friendlyAuthError } from "@/lib/editorial-auth";
-import { ensureEditorialProfile } from "@/lib/editorial.functions";
+import { clearPendingSignup, getPendingSignup } from "@/lib/editorial-signup-store";
+import { ensureEditorialProfile, updateMyEditorialProfile } from "@/lib/editorial.functions";
+
 
 type Search = { email?: string | undefined };
 
