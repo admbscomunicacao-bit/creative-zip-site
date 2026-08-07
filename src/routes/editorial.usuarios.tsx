@@ -248,17 +248,6 @@ function UsersAdmin() {
           ))}
         </div>
       )}
-
-      <h2 className="admin-subtitle">Registro de auditoria</h2>
-      <ul className="audit-list">
-        {(audit.data ?? []).map((row) => (
-          <li key={row.id}>
-            <strong>{row.action}</strong> — {formatDate(row.createdAt)}
-            <br />
-            <span className="password-hint">{row.detail}</span>
-          </li>
-        ))}
-      </ul>
     </EditorialShell>
   );
 }
