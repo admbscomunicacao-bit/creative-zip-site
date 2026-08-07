@@ -6,7 +6,7 @@ import {
   editorialSignOut,
   useEditorialAccount,
 } from "@/components/editorial-shell";
-import { statusMessage } from "@/lib/editorial-auth";
+import { formatPhoneBR, statusMessage } from "@/lib/editorial-auth";
 import { updateMyEditorialProfile } from "@/lib/editorial.functions";
 import { supabase } from "@/integrations/supabase/client";
 
