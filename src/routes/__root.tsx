@@ -105,6 +105,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "@id": "https://www.canaltransforma.com.br/#website",
+              name: "Canal Transforma",
+              url: "https://www.canaltransforma.com.br",
+              inLanguage: "pt-BR",
+              description:
+                "Notícias de Catanduva com apuração e contexto: cidade, política, serviços e esportes.",
+              publisher: { "@id": "https://www.canaltransforma.com.br/#organization" },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://www.canaltransforma.com.br/busca?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+            {
+              "@type": "NewsMediaOrganization",
+              "@id": "https://www.canaltransforma.com.br/#organization",
+              name: "Canal Transforma",
+              url: "https://www.canaltransforma.com.br",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://www.canaltransforma.com.br/favicon.png",
+              },
+              areaServed: "Catanduva, SP, Brasil",
+            },
+          ],
+        }),
+      },
+    ],
   }),
 
   shellComponent: RootShell,
