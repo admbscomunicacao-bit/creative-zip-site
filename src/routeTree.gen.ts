@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
 import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
 import { Route as EditorialAguardandoRouteImport } from './routes/editorial.aguardando'
@@ -48,6 +49,11 @@ const NoticiasDoDiaRoute = NoticiasDoDiaRouteImport.update({
 const NoticiasRecentesRoute = NoticiasRecentesRouteImport.update({
   id: '/noticias-recentes',
   path: '/noticias-recentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditoriaSectionRoute = EditoriaSectionRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/sitemap.xml'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/sitemap.xml'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/sitemap.xml'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   BuscaRoute: typeof BuscaRoute
   NoticiasDoDiaRoute: typeof NoticiasDoDiaRoute
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
   EditorialAguardandoRoute: typeof EditorialAguardandoRoute
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       path: '/noticias-recentes'
       fullPath: '/noticias-recentes'
       preLoaderRoute: typeof NoticiasRecentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/editoria/$section': {
@@ -440,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuscaRoute: BuscaRoute,
   NoticiasDoDiaRoute: NoticiasDoDiaRoute,
   NoticiasRecentesRoute: NoticiasRecentesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,
   EditorialAguardandoRoute: EditorialAguardandoRoute,
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
@@ -460,3 +481,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
