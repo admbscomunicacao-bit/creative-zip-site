@@ -2,7 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Loader2, Trash2 } from "lucide-react";
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  ArrowRight,
+  Link2,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { editorialSignOut, useRequireEditorialAccount } from "@/components/editorial-shell";
 import logo from "@/assets/logo.png.asset.json";
 import { sections, type Section } from "@/data/stories";
@@ -339,6 +348,10 @@ function ArticleEditor({
   const [coverUrl, setCoverUrl] = useState<string | null>(article.coverUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const savedRange = useRef<Range | null>(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
@@ -561,6 +574,8 @@ function ArticleEditor({
             title="Inserir link"
             onClick={() => {
               const selection = window.getSelection();
+              savedRange.current =
+                selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
               setLinkText(selection ? selection.toString() : "");
               setLinkUrl("");
               setLinkOpen(true);
