@@ -703,8 +703,11 @@ function ArticleEditor({
               onClick={() =>
                 insertHtml(
                   `<div class="article-columns cols-${n}">${Array.from({ length: n })
-                    .map(() => "<div><p>Escreva aqui ou insira uma foto/vídeo…</p></div>")
-                    .join("")}</div><p><br /></p>`,
+                    .map(
+                      () =>
+                        `<div><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
+                    )
+                    .join("")}</div><p><br></p>`,
                 )
               }
             >
@@ -715,7 +718,10 @@ function ArticleEditor({
 
         <div className="block-actions block-actions-insert">
           <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
-          <button type="button" onClick={() => insertHtml("<p>Novo bloco de texto…</p>")}>
+          <button
+            type="button"
+            onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}
+          >
             + Texto
           </button>
           <button
@@ -724,7 +730,7 @@ function ArticleEditor({
               void withUpload(false, (url, kind) =>
                 kind === "video"
                   ? `<figure><video controls src="${url}"></video></figure>`
-                  : `<figure><img src="${url}" alt="" /><figcaption>Legenda da imagem</figcaption></figure>`,
+                  : `<figure><img src="${url}" alt="" /><figcaption data-ph="Legenda da imagem"><br></figcaption></figure>`,
               )
             }
           >
@@ -747,3 +753,4 @@ function ArticleEditor({
     </main>
   );
 }
+
