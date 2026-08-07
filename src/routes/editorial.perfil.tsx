@@ -214,11 +214,14 @@ function ProfilePage() {
           />
         </label>
         <label>
-          Telefone (opcional)
+          Telefone celular
           <input
             type="tel"
+            required
+            inputMode="numeric"
+            placeholder="(17) 99999-9999"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e) => setForm({ ...form, phone: formatPhoneBR(e.target.value) })}
           />
         </label>
         <label>
