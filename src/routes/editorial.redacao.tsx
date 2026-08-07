@@ -352,6 +352,19 @@ function ArticleEditor({
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const savedRange = useRef<Range | null>(null);
+  const [inColumn, setInColumn] = useState(false);
+
+  useEffect(() => {
+    const onSelect = () => {
+      const node = window.getSelection()?.anchorNode ?? null;
+      const el = node instanceof Element ? node : node?.parentElement ?? null;
+      const cell = el?.closest(".article-columns > div") ?? null;
+      setInColumn(Boolean(cell && bodyRef.current?.contains(cell)));
+    };
+    document.addEventListener("selectionchange", onSelect);
+    return () => document.removeEventListener("selectionchange", onSelect);
+  }, []);
+
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
@@ -661,8 +674,27 @@ function ArticleEditor({
         />
 
         <div className="block-actions">
+          {[1, 2, 3].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() =>
+                insertHtml(
+                  `<div class="article-columns cols-${n}">${Array.from({ length: n })
+                    .map(() => "<div><p>Escreva aqui ou insira uma foto/vídeo…</p></div>")
+                    .join("")}</div><p><br /></p>`,
+                )
+              }
+            >
+              + {n} coluna{n > 1 ? "s" : ""}
+            </button>
+          ))}
+        </div>
+
+        <div className="block-actions block-actions-insert">
+          <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
           <button type="button" onClick={() => insertHtml("<p>Novo bloco de texto…</p>")}>
-            + Bloco de texto
+            + Texto
           </button>
           <button
             type="button"
@@ -687,17 +719,8 @@ function ArticleEditor({
           >
             + Galeria
           </button>
-          <button
-            type="button"
-            onClick={() =>
-              insertHtml(
-                '<div class="article-columns"><div><p>Coluna 1</p></div><div><p>Coluna 2</p></div></div><p></p>',
-              )
-            }
-          >
-            + Layout em colunas
-          </button>
         </div>
+
       </section>
     </main>
   );
