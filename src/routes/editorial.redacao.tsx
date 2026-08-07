@@ -356,10 +356,14 @@ function ArticleEditor({
 
   useEffect(() => {
     const onSelect = () => {
-      const node = window.getSelection()?.anchorNode ?? null;
+      const selection = window.getSelection();
+      const node = selection?.anchorNode ?? null;
       const el = node instanceof Element ? node : node?.parentElement ?? null;
       const cell = el?.closest(".article-columns > div") ?? null;
       setInColumn(Boolean(cell && bodyRef.current?.contains(cell)));
+      if (selection?.rangeCount && bodyRef.current?.contains(selection.anchorNode)) {
+        savedRange.current = selection.getRangeAt(0).cloneRange();
+      }
     };
     document.addEventListener("selectionchange", onSelect);
     return () => document.removeEventListener("selectionchange", onSelect);
@@ -382,6 +386,9 @@ function ArticleEditor({
     body.focus();
     const selection = window.getSelection();
     let range = selection && selection.rangeCount ? selection.getRangeAt(0) : null;
+    if ((!range || !body.contains(range.commonAncestorContainer)) && savedRange.current) {
+      range = savedRange.current.cloneRange();
+    }
     if (!range || !body.contains(range.commonAncestorContainer)) {
       range = document.createRange();
       range.selectNodeContents(body);
@@ -399,7 +406,21 @@ function ArticleEditor({
       after.collapse(true);
       selection?.removeAllRanges();
       selection?.addRange(after);
+      savedRange.current = after.cloneRange();
     }
+  };
+
+  const insertColumns = (count: 1 | 2 | 3) => {
+    const cells = Array.from(
+      { length: count },
+      () => `<div class="article-column"><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
+    ).join("");
+
+    insertHtml(
+      `<p class="article-paragraph" data-ph="Escreva antes das colunas…"><br></p>` +
+        `<div class="article-columns cols-${count}" data-columns="${count}">${cells}</div>` +
+        `<p class="article-paragraph" data-ph="Continue escrevendo depois das colunas…"><br></p>`,
+    );
   };
 
 
@@ -693,6 +714,18 @@ function ArticleEditor({
           contentEditable
           suppressContentEditableWarning
           data-placeholder="Comece a escrever a reportagem. Adicione texto, fotos, vídeos e blocos conforme necessário."
+          onInput={() => {
+            const body = bodyRef.current;
+            if (!body) return;
+            const last = body.lastElementChild;
+            if (last?.classList.contains("article-columns")) {
+              const paragraph = document.createElement("p");
+              paragraph.className = "article-paragraph";
+              paragraph.dataset.ph = "Continue escrevendo aqui…";
+              paragraph.appendChild(document.createElement("br"));
+              body.appendChild(paragraph);
+            }
+          }}
         />
 
         <div className="block-actions">
@@ -700,16 +733,7 @@ function ArticleEditor({
             <button
               key={n}
               type="button"
-              onClick={() =>
-                insertHtml(
-                  `<div class="article-columns cols-${n}">${Array.from({ length: n })
-                    .map(
-                      () =>
-                        `<div><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
-                    )
-                    .join("")}</div><p><br></p>`,
-                )
-              }
+              onClick={() => insertColumns(n as 1 | 2 | 3)}
             >
               + {n} coluna{n > 1 ? "s" : ""}
             </button>
