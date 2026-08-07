@@ -2,7 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Loader2, Trash2 } from "lucide-react";
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  ArrowRight,
+  Link2,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { editorialSignOut, useRequireEditorialAccount } from "@/components/editorial-shell";
 import logo from "@/assets/logo.png.asset.json";
 import { sections, type Section } from "@/data/stories";
@@ -339,6 +348,10 @@ function ArticleEditor({
   const [coverUrl, setCoverUrl] = useState<string | null>(article.coverUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const savedRange = useRef<Range | null>(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
@@ -560,25 +573,84 @@ function ArticleEditor({
             type="button"
             title="Inserir link"
             onClick={() => {
-              const url = prompt("Endereço do link (https://...)");
-              if (url) exec("createLink", url);
+              const selection = window.getSelection();
+              savedRange.current =
+                selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+              setLinkText(selection ? selection.toString() : "");
+              setLinkUrl("");
+              setLinkOpen(true);
             }}
           >
-            ↗
+            <Link2 size={16} />
           </button>
-          <button type="button" title="Lista" onClick={() => exec("insertUnorderedList")}>
-            ≡
-          </button>
-          <button type="button" title="Lista numerada" onClick={() => exec("insertOrderedList")}>
-            1.
+          <button type="button" title="Alinhar à esquerda" onClick={() => exec("justifyLeft")}>
+            <AlignLeft size={16} />
           </button>
           <button type="button" title="Centralizar" onClick={() => exec("justifyCenter")}>
-            ⋮⋮
+            <AlignCenter size={16} />
           </button>
-          <button type="button" title="Limpar formatação" onClick={() => exec("removeFormat")}>
-            ⌫
+          <button type="button" title="Alinhar à direita" onClick={() => exec("justifyRight")}>
+            <AlignRight size={16} />
+          </button>
+          <button type="button" title="Justificar" onClick={() => exec("justifyFull")}>
+            <AlignJustify size={16} />
           </button>
         </div>
+
+        {linkOpen ? (
+          <div className="link-dialog-backdrop" role="dialog" aria-modal="true">
+            <div className="link-dialog">
+              <h3>Inserir link</h3>
+              <label>
+                Texto do link
+                <input
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  placeholder="Palavra ou frase"
+                />
+              </label>
+              <label>
+                Endereço (URL)
+                <input
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+              </label>
+              <div className="link-dialog-actions">
+                <button type="button" className="ghost" onClick={() => setLinkOpen(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="save"
+                  onClick={() => {
+                    const url = linkUrl.trim();
+                    if (!url) return;
+                    const href = /^(https?:|mailto:|tel:|\/)/i.test(url) ? url : `https://${url}`;
+                    const label = linkText.trim();
+                    if (savedRange.current) {
+                      const selection = window.getSelection();
+                      selection?.removeAllRanges();
+                      selection?.addRange(savedRange.current);
+                    }
+                    const selected = window.getSelection()?.toString() ?? "";
+                    if (selected && (!label || label === selected)) {
+                      exec("createLink", href);
+                    } else {
+                      insertHtml(
+                        `<a href="${href}" target="_blank" rel="noopener noreferrer">${label || href}</a>`,
+                      );
+                    }
+                    setLinkOpen(false);
+                  }}
+                >
+                  Inserir link
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div
           ref={bodyRef}
