@@ -54,6 +54,9 @@ function Home() {
     <>
       <SiteHeader />
       <div className="home-shell">
+        <h1 className="sr-only">
+          Canal Transforma — jornalismo local de Catanduva e região
+        </h1>
         <section
           className={`headline-carousel ${active.color} has-cover`}
           aria-label="Principais notícias"
@@ -74,12 +77,13 @@ function Home() {
               >
                 <p className="eyebrow">Em destaque</p>
                 <p className={`story-section section-${s.color}`}>{s.section}</p>
-                <h1>{s.title}</h1>
+                <h2 className="carousel-title">{s.title}</h2>
                 <p>{s.summary}</p>
                 <Link
                   to="/noticia/$slug"
                   params={{ slug: s.slug }}
                   className="carousel-link"
+                  aria-label={`Ler reportagem: ${s.title}`}
                   tabIndex={i === index ? 0 : -1}
                 >
                   Ler reportagem <b>→</b>

@@ -92,7 +92,7 @@ function EditorialLogin() {
   return (
     <EditorialShell
       eyebrow="Área editorial"
-      title="Seu acesso começa aqui."
+      title="Login da redação Canal Transforma"
       intro="Entre com sua conta individual para criar, revisar e administrar as publicações do Canal Transforma."
     >
       <form className="login-form" onSubmit={submitPassword}>
