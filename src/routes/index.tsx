@@ -64,7 +64,13 @@ function Home() {
           <div className="carousel-media" aria-hidden="true">
             {featured.map((s, i) => (
               <div key={s.slug} className={`carousel-photo ${i === index ? "is-active" : ""}`}>
-                <img src={s.image} alt="" loading={i === 0 ? "eager" : "lazy"} decoding="async" />
+                <img
+                  src={s.image.replace(/([?&])w=\d+/, "$1w=1200")}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : undefined}
+                  decoding="async"
+                />
               </div>
             ))}
           </div>
