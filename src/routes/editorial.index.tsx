@@ -62,7 +62,10 @@ function EditorialLogin() {
   const sendCode = async (target: string) => {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: target,
-      options: { shouldCreateUser: false },
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/editorial/entrar`,
+      },
     });
     if (otpError) {
       setError(friendlyAuthError(otpError.message));
