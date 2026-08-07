@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "creative-zip-site"
+const SITE_NAME = "Canal Transforma"
 const SENDER_DOMAIN = "notify.canaltransforma.com.br"
 const ROOT_DOMAIN = "canaltransforma.com.br"
 const FROM_DOMAIN = "canaltransforma.com.br"
@@ -24,55 +24,43 @@ const handler = createAuthEmailHandler({
   sendUrl: process.env['LOVABLE_SEND_URL'],
   emails: {
     signup: {
-      subject: 'Confirm your email',
+      subject: 'Seu código de confirmação — Canal Transforma',
       render: (data) =>
         React.createElement(SignupEmail, {
-          siteName: SITE_NAME,
-          siteUrl: SITE_URL,
           recipient: data.email,
-          confirmationUrl: data.url,
+          token: data.token ?? '',
         }),
     },
     invite: {
-      subject: "You've been invited",
+      subject: 'Convite para a área editorial — Canal Transforma',
       render: (data) =>
-        React.createElement(InviteEmail, {
-          siteName: SITE_NAME,
-          siteUrl: SITE_URL,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(InviteEmail, { token: data.token ?? '' }),
     },
     magiclink: {
-      subject: 'Your login link',
+      subject: 'Seu código de acesso — Canal Transforma',
       render: (data) =>
-        React.createElement(MagicLinkEmail, {
-          siteName: SITE_NAME,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
     },
     recovery: {
-      subject: 'Reset your password',
+      subject: 'Código para redefinir sua senha — Canal Transforma',
       render: (data) =>
-        React.createElement(RecoveryEmail, {
-          siteName: SITE_NAME,
-          confirmationUrl: data.url,
-        }),
+        React.createElement(RecoveryEmail, { token: data.token ?? '' }),
     },
     email_change: {
-      subject: 'Confirm your new email',
+      subject: 'Confirme seu novo e-mail — Canal Transforma',
       render: (data) =>
         React.createElement(EmailChangeEmail, {
-          siteName: SITE_NAME,
-          oldEmail: data.old_email ?? '',
-          email: data.email,
           newEmail: data.new_email ?? '',
-          confirmationUrl: data.url,
+          token: data.token ?? '',
         }),
     },
     reauthentication: {
-      subject: 'Your verification code',
+      subject: 'Seu código de verificação — Canal Transforma',
       render: (data) =>
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
+    },
+  },
+}),
     },
   },
 })
