@@ -478,8 +478,9 @@ footer.site-footer{grid-template-columns:1fr;padding:28px 20px}
 .status-approved{background:oklch(0.92 0.08 150);color:oklch(0.4 0.1 150)}
 .status-pending{background:oklch(0.94 0.09 90);color:oklch(0.45 0.1 75)}
 .status-blocked{background:oklch(0.92 0.07 25);color:oklch(0.45 0.15 25)}
-.mfa-enroll{gap:16px;display:grid}
-.mfa-qr{border:1px solid var(--line);background:var(--paper);border-radius:12px;width:200px;height:200px;padding:10px}
+.mfa-enroll{gap:16px;display:grid;justify-items:center;text-align:center}
+.mfa-enroll .password-hint,.mfa-enroll label{width:100%}
+.mfa-qr{border:1px solid var(--line);background:var(--paper);border-radius:12px;width:200px;height:200px;padding:10px;display:block;margin:0 auto}
 .admin-table-wrap{overflow-x:auto}
 .admin-table{border-collapse:collapse;width:100%;font-size:14px}
 .admin-table th,.admin-table td{border-bottom:1px solid var(--line);text-align:left;padding:12px 10px;vertical-align:top}
