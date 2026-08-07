@@ -49,7 +49,7 @@ function Newsroom() {
         </p>
         <div className="editorial-links">
           <Link to="/editorial/perfil">Meu perfil</Link>
-          <Link to="/editorial/seguranca">Segurança e autenticadores</Link>
+          <Link to="/editorial/seguranca">Segurança da conta</Link>
           {account.isAdmin && <Link to="/editorial/usuarios">Administrar usuários</Link>}
           <button
             type="button"
