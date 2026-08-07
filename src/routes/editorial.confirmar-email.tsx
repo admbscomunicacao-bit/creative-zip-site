@@ -38,6 +38,7 @@ function ConfirmEmail() {
   const { email: initialEmail } = Route.useSearch();
   const navigate = useNavigate();
   const ensureProfile = useServerFn(ensureEditorialProfile);
+  const updateProfile = useServerFn(updateMyEditorialProfile);
 
   const [email, setEmail] = useState(initialEmail ?? "");
   const [code, setCode] = useState("");
@@ -46,14 +47,43 @@ function ConfirmEmail() {
   const [busy, setBusy] = useState(false);
   const [editingEmail, setEditingEmail] = useState(!initialEmail);
 
+  // Salva os dados preenchidos no cadastro (foto, biografia) agora que existe sessão.
+  const savePendingSignupData = async (userId: string) => {
+    const pending = getPendingSignup();
+    if (!pending) return;
+    let avatarPath = "";
+    if (pending.avatarFile) {
+      const ext = pending.avatarFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, pending.avatarFile, {
+          contentType: pending.avatarFile.type,
+          upsert: true,
+        });
+      if (!upErr) avatarPath = path;
+    }
+    await updateProfile({
+      data: {
+        fullName: pending.fullName,
+        phone: pending.phone,
+        bio: pending.bio,
+        avatarPath,
+      },
+    }).catch(() => undefined);
+    clearPendingSignup();
+  };
+
   // If the user arrived through the e-mail link, the session already exists.
   useEffect(() => {
     void (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) return;
       await ensureProfile({ data: { acceptedTerms: true } }).catch(() => undefined);
-      await navigate({ to: "/editorial/perfil" });
+      await savePendingSignupData(data.session.user.id);
+      await navigate({ to: "/editorial/aguardando" });
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ensureProfile, navigate]);
 
   const verify = async (e: React.FormEvent) => {
@@ -96,8 +126,10 @@ function ConfirmEmail() {
           acceptedTerms: true,
         },
       });
-      await navigate({ to: "/editorial/perfil" });
+      if (user.data.user?.id) await savePendingSignupData(user.data.user.id);
+      await navigate({ to: "/editorial/aguardando" });
     } finally {
+
       setBusy(false);
     }
   };
