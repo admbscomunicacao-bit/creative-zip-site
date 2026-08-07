@@ -7,7 +7,7 @@ const BASE_URL = "https://www.canaltransforma.com.br";
 
 interface SitemapEntry {
   path: string;
-  lastmod?: string;
+  lastmod?: string | undefined;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
 }
