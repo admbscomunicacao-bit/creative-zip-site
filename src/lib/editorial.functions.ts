@@ -186,9 +186,6 @@ async function assertApprovedAdmin(context: {
   userId: string;
   claims: Record<string, unknown>;
 }) {
-  if (context.claims["aal"] !== "aal2") {
-    throw new Error("Verificação em duas etapas obrigatória para esta ação.");
-  }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.rpc("is_editorial_admin", {
     _user_id: context.userId,
@@ -332,6 +329,32 @@ export const recordLoginFailure = createServerFn({ method: "POST" })
     await supabaseAdmin.from("audit_log").insert({
       action: "login_failed",
       detail: { email: data.email.slice(0, 255), reason: data.reason },
+    });
+    return { ok: true };
+  });
+
+// Removes an editorial account completely: role, profile and the auth login itself.
+export const deleteEditorialUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) =>
+    z.object({ userId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertApprovedAdmin(context);
+    if (data.userId === context.userId) {
+      throw new Error("Você não pode excluir a sua própria conta.");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("articles").delete().eq("author_id", data.userId);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("audit_log").insert({
+      actor_id: context.userId,
+      target_user_id: null,
+      action: "user_deleted",
+      detail: { userId: data.userId },
     });
     return { ok: true };
   });

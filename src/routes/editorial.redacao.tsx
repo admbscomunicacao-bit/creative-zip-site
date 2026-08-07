@@ -250,7 +250,8 @@ function Newsroom() {
                   type="button"
                   key={reporter.id}
                   onClick={() => {
-                    if (account.isAdmin) void navigate({ to: "/editorial/usuarios" });
+                    if (account.isAdmin)
+                      void navigate({ to: "/editorial/usuarios", search: { u: reporter.id } });
                   }}
                 >
                   <b>{reporter.fullName}</b>

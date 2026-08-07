@@ -7,17 +7,18 @@ import { getPublishedArticle } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/noticia/$slug")({
   loader: async ({ params }) => {
-    const story = stories.find((s) => s.slug === params.slug);
-    if (story)
-      return {
-        story,
-        bodyHtml: null as string | null,
-        author: "Canal Transforma",
-        publishedAtIso: null as string | null,
-      };
-
     const article = await getPublishedArticle({ data: { slug: params.slug } });
-    if (!article) throw notFound();
+    if (!article) {
+      const story = stories.find((s) => s.slug === params.slug);
+      if (story)
+        return {
+          story,
+          bodyHtml: null as string | null,
+          author: "Canal Transforma",
+          publishedAtIso: null as string | null,
+        };
+      throw notFound();
+    }
     return {
       story: {
         slug: article.slug,

@@ -609,3 +609,32 @@ footer.site-footer{grid-template-columns:1fr;padding:28px 20px}
 .link-dialog-actions{display:flex;justify-content:flex-end;gap:8px}
 .link-dialog-actions button{height:38px;border-radius:8px;padding:0 14px;border:1px solid var(--line);background:var(--paper);color:var(--text);font:inherit;cursor:pointer}
 .link-dialog-actions button.save{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+
+/* Detalhe de conta editorial */
+.user-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin: 0 0 24px;
+}
+.user-detail-grid dt {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #64748b);
+  margin-bottom: 6px;
+}
+.user-detail-grid dd {
+  margin: 0;
+  font-weight: 600;
+}
+.user-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.editorial-secondary.danger {
+  border-color: #dc2626;
+  color: #dc2626;
+}
