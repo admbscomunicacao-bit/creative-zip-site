@@ -64,7 +64,7 @@ function Newsroom() {
         </div>
         <p className="password-hint">
           As ferramentas de criação, edição e publicação de reportagens entram aqui. Todas as ações
-          continuam validadas no servidor por status aprovado, papel e sessão com MFA.
+          continuam validadas no servidor por status aprovado, papel e sessão verificada por código.
         </p>
       </div>
     </EditorialShell>
