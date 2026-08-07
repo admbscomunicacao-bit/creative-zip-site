@@ -85,7 +85,7 @@ function Home() {
                   className="carousel-link"
                   tabIndex={i === index ? 0 : -1}
                 >
-                  Ler reportagem <b>→</b>
+                  Ler reportagem: {s.title} <b>→</b>
                 </Link>
               </div>
             ))}
