@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          author_id: string
+          author_name: string
+          body_html: string
+          color: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          published_at: string | null
+          section: string
+          slug: string
+          status: Database["public"]["Enums"]["article_status"]
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string
+          body_html?: string
+          color?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          section?: string
+          slug: string
+          status?: Database["public"]["Enums"]["article_status"]
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body_html?: string
+          color?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          section?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["article_status"]
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -127,6 +178,7 @@ export type Database = {
     Enums: {
       account_status: "pending" | "approved" | "blocked"
       app_role: "reporter" | "admin"
+      article_status: "draft" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -256,6 +308,7 @@ export const Constants = {
     Enums: {
       account_status: ["pending", "approved", "blocked"],
       app_role: ["reporter", "admin"],
+      article_status: ["draft", "published"],
     },
   },
 } as const
