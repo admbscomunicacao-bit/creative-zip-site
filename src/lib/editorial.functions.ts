@@ -103,13 +103,22 @@ export const getMyEditorialAccount = createServerFn({ method: "GET" })
     const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const roles = (roleRows ?? []).map((r) => r.role as AppRole);
 
+    // Generate a signed URL for the avatar if a storage path is stored.
+    let avatarUrl: string | null = null;
+    if (profile.avatar_url) {
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(profile.avatar_url, 3600);
+      avatarUrl = signed?.signedUrl ?? null;
+    }
+
     return {
       userId,
       email: profile.email,
       fullName: profile.full_name,
       phone: profile.phone,
       bio: profile.bio,
-      avatarUrl: profile.avatar_url,
+      avatarUrl,
       status: profile.status as AccountStatus,
       mfaEnrolledAt: profile.mfa_enrolled_at,
       roles,
@@ -120,25 +129,36 @@ export const getMyEditorialAccount = createServerFn({ method: "GET" })
 
 export const updateMyEditorialProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { fullName: string; phone?: string; bio?: string; avatarUrl?: string }) =>
+  .inputValidator((input: { fullName: string; phone?: string; bio?: string; avatarPath?: string }) =>
     z
       .object({
         fullName: z.string().trim().min(3, "Informe seu nome completo").max(120),
         phone: z.string().trim().max(40).optional(),
         bio: z.string().trim().max(1000).optional(),
-        avatarUrl: z.string().trim().url().max(500).optional().or(z.literal("")),
+        avatarPath: z.string().trim().max(500).optional().or(z.literal("")),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // If the avatar path changed, remove the old file from storage.
+    const { data: current } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", userId)
+      .maybeSingle();
+    if (current?.avatar_url && current.avatar_url !== data.avatarPath) {
+      await supabase.storage.from("avatars").remove([current.avatar_url]).catch(() => undefined);
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
         full_name: data.fullName,
         phone: data.phone ?? null,
         bio: data.bio ?? null,
-        avatar_url: data.avatarUrl ? data.avatarUrl : null,
+        avatar_url: data.avatarPath ? data.avatarPath : null,
       })
       .eq("id", userId);
     if (error) throw new Error(error.message);
