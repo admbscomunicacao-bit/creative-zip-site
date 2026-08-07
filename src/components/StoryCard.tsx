@@ -1,6 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import type { Story } from "@/data/stories";
 
+/** Reduz o peso das capas pedindo uma versão menor ao CDN de imagens. */
+function sized(url: string, width: number) {
+  if (!url.includes("images.unsplash.com")) return url;
+  return url.replace(/([?&])w=\d+/, `$1w=${width}`);
+}
+
 function StoryLink({ story, children }: { story: Story; children: React.ReactNode }) {
   return (
     <Link
@@ -20,7 +26,9 @@ export function LeadStory({ story }: { story: Story }) {
       <article className="lead-story">
         <div className={`story-art section-${story.color}`}>
           <img
-            src={story.image}
+            src={sized(story.image, 900)}
+            width={900}
+            height={506}
             alt={`Capa: ${story.title}`}
             loading="lazy"
             decoding="async"
@@ -42,7 +50,12 @@ export function MiniStory({ story }: { story: Story }) {
     <StoryLink story={story}>
       <article className="mini-story">
         <div className={`mini-art section-${story.color}`}>
-          <img src={story.image} alt={`Capa: ${story.title}`} loading="lazy" decoding="async" />
+          <img
+            src={sized(story.image, 480)}
+            alt={`Capa: ${story.title}`}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         <div>
           <p className={`story-section section-${story.color}`}>{story.section}</p>
@@ -60,7 +73,12 @@ export function NewsCard({ story }: { story: Story }) {
     <StoryLink story={story}>
       <article className="news-card">
         <div className={`news-visual section-${story.color}`}>
-          <img src={story.image} alt={`Capa: ${story.title}`} loading="lazy" decoding="async" />
+          <img
+            src={sized(story.image, 480)}
+            alt={`Capa: ${story.title}`}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         <span className={`category-tag section-${story.color}`}>{story.section}</span>
         <h3>{story.title}</h3>
@@ -78,7 +96,12 @@ export function ListingCard({ story }: { story: Story }) {
     <StoryLink story={story}>
       <article className="listing-card">
         <div className={`listing-art ${story.color}`}>
-          <img src={story.image} alt={`Capa: ${story.title}`} loading="lazy" decoding="async" />
+          <img
+            src={sized(story.image, 480)}
+            alt={`Capa: ${story.title}`}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         <p className={`story-section section-${story.color}`}>{story.section}</p>
         <h2>{story.title}</h2>
