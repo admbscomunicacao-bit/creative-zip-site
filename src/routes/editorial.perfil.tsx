@@ -49,6 +49,10 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!isLoading && !account) void navigate({ to: "/editorial" });
+    if (account && account.status !== "approved") {
+      void navigate({ to: "/editorial/aguardando" });
+      return;
+    }
     if (account) {
       setForm({
         fullName: account.fullName,
@@ -59,6 +63,7 @@ function ProfilePage() {
       setAvatarPreview(account.avatarUrl ?? null);
     }
   }, [account, isLoading, navigate]);
+
 
   const handleFile = async (file: File) => {
     setUploadError("");

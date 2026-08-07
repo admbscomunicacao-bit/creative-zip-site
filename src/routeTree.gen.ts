@@ -15,6 +15,7 @@ import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
 import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
+import { Route as EditorialAguardandoRouteImport } from './routes/editorial.aguardando'
 import { Route as EditorialConfirmarEmailRouteImport } from './routes/editorial.confirmar-email'
 import { Route as EditorialCriarContaRouteImport } from './routes/editorial.criar-conta'
 import { Route as EditorialEsqueciSenhaRouteImport } from './routes/editorial.esqueci-senha'
@@ -54,6 +55,11 @@ const EditoriaSectionRoute = EditoriaSectionRouteImport.update({
 const EditorialIndexRoute = EditorialIndexRouteImport.update({
   id: '/editorial/',
   path: '/editorial/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialAguardandoRoute = EditorialAguardandoRouteImport.update({
+  id: '/editorial/aguardando',
+  path: '/editorial/aguardando',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditorialConfirmarEmailRoute = EditorialConfirmarEmailRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/editoria/$section': typeof EditoriaSectionRoute
+  '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/aguardando'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/aguardando'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/noticias-do-dia'
     | '/noticias-recentes'
     | '/editoria/$section'
+    | '/editorial/aguardando'
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
@@ -225,6 +237,7 @@ export interface RootRouteChildren {
   NoticiasDoDiaRoute: typeof NoticiasDoDiaRoute
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
+  EditorialAguardandoRoute: typeof EditorialAguardandoRoute
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
   EditorialCriarContaRoute: typeof EditorialCriarContaRoute
   EditorialEsqueciSenhaRoute: typeof EditorialEsqueciSenhaRoute
@@ -280,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/editorial'
       fullPath: '/editorial/'
       preLoaderRoute: typeof EditorialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial/aguardando': {
+      id: '/editorial/aguardando'
+      path: '/editorial/aguardando'
+      fullPath: '/editorial/aguardando'
+      preLoaderRoute: typeof EditorialAguardandoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/editorial/confirmar-email': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoticiasDoDiaRoute: NoticiasDoDiaRoute,
   NoticiasRecentesRoute: NoticiasRecentesRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,
+  EditorialAguardandoRoute: EditorialAguardandoRoute,
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
   EditorialCriarContaRoute: EditorialCriarContaRoute,
   EditorialEsqueciSenhaRoute: EditorialEsqueciSenhaRoute,
