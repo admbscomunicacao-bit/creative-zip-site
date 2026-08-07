@@ -203,7 +203,7 @@ body{background:var(--paper);color:var(--text);margin:0;font-family:Arial,Helvet
 .eyebrow,.story-section{letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;font-size:11px;font-weight:800}
 .eyebrow{color:var(--blue)}
 .headline-carousel .eyebrow,.headline-carousel .story-section{color:oklch(1.0 0.0 89.88)}
-.carousel-copy h1{letter-spacing:-.055em;max-width:670px;margin:8px 0 14px;font-size:49px;line-height:1.01}
+.carousel-copy h1,.carousel-copy .carousel-title{letter-spacing:-.055em;max-width:670px;margin:8px 0 14px;font-size:49px;line-height:1.01}
 .carousel-copy>p:not(.eyebrow):not(.story-section){color:oklch(0.9659 0.0117 239.9);max-width:570px;margin:0 0 24px;font-size:17px;line-height:1.5}
 .carousel-link{color:var(--ink);background:oklch(1.0 0.0 89.88);border-radius:9px;padding:13px 16px;font-size:13px;font-weight:800;display:inline-block}
 .carousel-link b,.lead-story a b,.news-card a b,.listing-card a b{color:var(--blue);font-size:18px}
@@ -282,7 +282,7 @@ footer.site-footer{border-top:1px solid var(--line);max-width:1240px;color:var(-
 .brand img{width:205px}
 .home-shell,.listing-shell,.article-shell{padding:28px 20px 58px}
 .headline-carousel{border-radius:20px;grid-template-columns:1fr;min-height:435px;padding:32px 28px}
-.carousel-copy h1{font-size:36px}
+.carousel-copy h1,.carousel-copy .carousel-title{font-size:36px}
 .carousel-side{display:none}
 .carousel-controls{bottom:24px;left:28px}
 .lead-grid{grid-template-columns:1fr;gap:30px;padding:40px 0}
@@ -361,9 +361,9 @@ footer.site-footer{grid-template-columns:1fr;padding:28px 20px}
 .carousel-copy-stack{z-index:1;max-width:700px;display:grid;position:relative}
 .carousel-copy-stack .carousel-copy{opacity:0;pointer-events:none;will-change:opacity, transform;grid-area:1/1;max-width:700px;transition:opacity .34s,transform .34s cubic-bezier(.22,.8,.32,1);transform:translate(14px)}
 .carousel-copy-stack .carousel-copy.is-active{opacity:1;pointer-events:auto;transform:translate(0)}
-.carousel-copy-stack .carousel-copy h1{letter-spacing:-.055em;max-width:670px;margin:8px 0 14px;font-size:49px;line-height:1.01}
+.carousel-copy-stack .carousel-copy h1,.carousel-copy .carousel-title{letter-spacing:-.055em;max-width:670px;margin:8px 0 14px;font-size:49px;line-height:1.01}
 .carousel-copy-stack .carousel-copy>p:not(.eyebrow):not(.story-section){color:oklch(0.9659 0.0117 239.9);max-width:570px;margin:0 0 24px;font-size:17px;line-height:1.5}
-@media (width<=800px){.carousel-copy-stack .carousel-copy h1{font-size:36px}}
+@media (width<=800px){.carousel-copy-stack .carousel-copy h1,.carousel-copy .carousel-title{font-size:36px}}
 @media (prefers-reduced-motion:reduce){.carousel-copy-stack .carousel-copy{transition:none}}
 .daily-section-header{margin-top:58px;margin-bottom:-34px}
 .daily-section-header .eyebrow{margin-bottom:7px}
