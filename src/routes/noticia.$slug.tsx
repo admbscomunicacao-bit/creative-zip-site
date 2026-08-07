@@ -60,7 +60,14 @@ export const Route = createFileRoute("/noticia/$slug")({
           : []),
         { property: "og:url", content: url },
       ],
-      links: [{ rel: "canonical", href: url }],
+      links: [
+        { rel: "canonical", href: url },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family Merriweather:wght@400;700&display=swap",
+        },
+      ],
       scripts: story
         ? [
             {
