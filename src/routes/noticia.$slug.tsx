@@ -8,7 +8,13 @@ import { getPublishedArticle } from "@/lib/public-articles.functions";
 export const Route = createFileRoute("/noticia/$slug")({
   loader: async ({ params }) => {
     const story = stories.find((s) => s.slug === params.slug);
-    if (story) return { story, bodyHtml: null as string | null, author: "Canal Transforma" };
+    if (story)
+      return {
+        story,
+        bodyHtml: null as string | null,
+        author: "Canal Transforma",
+        publishedAtIso: null as string | null,
+      };
 
     const article = await getPublishedArticle({ data: { slug: params.slug } });
     if (!article) throw notFound();
@@ -29,10 +35,12 @@ export const Route = createFileRoute("/noticia/$slug")({
       },
       bodyHtml: article.bodyHtml,
       author: article.authorName || "Canal Transforma",
+      publishedAtIso: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
     };
   },
-  head: ({ loaderData }) => {
+  head: ({ params, loaderData }) => {
     const story = loaderData?.story;
+    const url = `https://www.canaltransforma.com.br/noticia/${params.slug}`;
     const title = story ? `${story.title} — Canal Transforma` : "Reportagem — Canal Transforma";
     const description = story?.summary ?? "Reportagem do Canal Transforma.";
     return {
@@ -49,7 +57,45 @@ export const Route = createFileRoute("/noticia/$slug")({
               { name: "twitter:image", content: story.image },
             ]
           : []),
+        { property: "og:url", content: url },
       ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: story
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                headline: story.title,
+                description: story.summary,
+                mainEntityOfPage: { "@type": "WebPage", "@id": url },
+                url,
+                inLanguage: "pt-BR",
+                articleSection: story.section,
+                ...(story.image ? { image: [story.image] } : {}),
+                ...(loaderData?.publishedAtIso
+                  ? {
+                      datePublished: loaderData.publishedAtIso,
+                      dateModified: loaderData.publishedAtIso,
+                    }
+                  : {}),
+                author: {
+                  "@type": "Person",
+                  name: loaderData?.author ?? "Canal Transforma",
+                },
+                publisher: {
+                  "@type": "NewsMediaOrganization",
+                  name: "Canal Transforma",
+                  logo: {
+                    "@type": "ImageObject",
+                    url: "https://www.canaltransforma.com.br/favicon.png",
+                  },
+                },
+              }),
+            },
+          ]
+        : undefined,
     };
   },
   component: Article,
