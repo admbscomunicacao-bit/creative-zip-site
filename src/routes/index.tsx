@@ -54,6 +54,9 @@ function Home() {
     <>
       <SiteHeader />
       <div className="home-shell">
+        <h1 className="sr-only">
+          Canal Transforma — jornalismo local de Catanduva e região
+        </h1>
         <section
           className={`headline-carousel ${active.color} has-cover`}
           aria-label="Principais notícias"
