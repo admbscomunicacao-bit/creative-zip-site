@@ -15,13 +15,36 @@ export const emailSchema = z
   .email("Informe um e-mail válido")
   .max(255);
 
+/** Celular brasileiro com DDD: 11 dígitos, ex. (17) 99999-9999. */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, "Informe seu telefone celular")
+  .transform((v) => v.replace(/\D/g, ""))
+  .refine((v) => v.length === 11, "Informe um celular com DDD e 9 dígitos, ex. (17) 99999-9999")
+  .refine((v) => v[2] === "9", "O número do celular deve começar com 9 depois do DDD");
+
+/** Aplica a máscara (99) 99999-9999 conforme o usuário digita. */
+export function formatPhoneBR(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : "";
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+/** Formato internacional guardado no perfil: +55DDDNÚMERO. */
+export function toE164BR(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  return digits ? `+55${digits}` : "";
+}
+
 export const signupSchema = z
   .object({
     fullName: z.string().trim().min(3, "Informe seu nome completo").max(120),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
-    phone: z.string().trim().max(40).optional(),
+    phone: phoneSchema,
     acceptedTerms: z.literal(true, {
       errorMap: () => ({ message: "É necessário aceitar os termos e a política de privacidade" }),
     }),
