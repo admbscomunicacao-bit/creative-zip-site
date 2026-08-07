@@ -17,7 +17,7 @@ export async function uploadArticleMedia(file: File): Promise<{ url: string; kin
 
   const { error } = await supabase.storage
     .from("article-media")
-    .upload(path, file, { contentType: file.type || undefined, upsert: false });
+    .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
   if (error) throw new Error(error.message);
 
   const { data, error: signError } = await supabase.storage
