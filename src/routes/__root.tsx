@@ -130,6 +130,19 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Link de acesso do e-mail pode cair na home com o token na URL: leva para a área editorial.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace(/^#/, "");
+    const search = window.location.search.replace(/^\?/, "");
+    const params = new URLSearchParams(hash || search);
+    const hasToken =
+      params.has("access_token") || params.has("token_hash") || params.get("type") === "magiclink";
+    if (!hasToken) return;
+    if (window.location.pathname.startsWith("/editorial")) return;
+    window.location.replace(`/editorial/entrar${window.location.search}${window.location.hash}`);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
@@ -137,3 +150,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
