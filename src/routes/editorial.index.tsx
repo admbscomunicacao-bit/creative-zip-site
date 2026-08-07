@@ -39,6 +39,8 @@ function EditorialLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"password" | "code">("password");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
@@ -54,6 +56,14 @@ function EditorialLogin() {
       return;
     }
     await navigate({ to: nextEditorialStep(account) });
+  };
+
+  const sendLoginCode = async (address: string) => {
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: address,
+      options: { shouldCreateUser: false },
+    });
+    return otpError?.message ?? "";
   };
 
   const submitPassword = async (e: React.FormEvent) => {
@@ -78,8 +88,48 @@ function EditorialLogin() {
         setError(friendlyAuthError(signInError.message));
         return;
       }
-      await logEvent({ data: { action: "login_success" } }).catch(() => undefined);
+      // Senha confere: encerramos a sessão e exigimos o código enviado por e-mail.
+      await supabase.auth.signOut();
+      const otpError = await sendLoginCode(parsedEmail.data);
+      if (otpError) {
+        setError(friendlyAuthError(otpError));
+        return;
+      }
+      setStep("code");
+      setPassword("");
+      setInfo(`Enviamos um código de seis dígitos para ${parsedEmail.data}.`);
+    } catch (err) {
+      setError(friendlyAuthError(err instanceof Error ? err.message : String(err)));
+    } finally {
+      setBusy(false);
+    }
+  };
 
+  const submitCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    const parsedEmail = emailSchema.safeParse(email);
+    if (!parsedEmail.success) {
+      setError("E-mail inválido.");
+      return;
+    }
+    if (code.trim().length !== 6) {
+      setError("O código tem seis dígitos.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: parsedEmail.data,
+        token: code.trim(),
+        type: "email",
+      });
+      if (verifyError) {
+        setError(friendlyAuthError(verifyError.message));
+        return;
+      }
+      await logEvent({ data: { action: "login_success" } }).catch(() => undefined);
       const account = (await fetchAccount()) as EditorialAccount | null;
       await goToAccount(account);
     } catch (err) {
@@ -89,47 +139,107 @@ function EditorialLogin() {
     }
   };
 
+  const resendCode = async () => {
+    setError("");
+    setInfo("");
+    setBusy(true);
+    try {
+      const otpError = await sendLoginCode(email);
+      if (otpError) setError(friendlyAuthError(otpError));
+      else setInfo("Novo código enviado. Confira sua caixa de entrada e o spam.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <EditorialShell
       eyebrow="Área editorial"
       title="Login da redação Canal Transforma"
-      intro="Entre com sua conta individual para criar, revisar e administrar as publicações do Canal Transforma."
+      intro={
+        step === "password"
+          ? "Entre com sua conta individual para criar, revisar e administrar as publicações do Canal Transforma."
+          : "Verificação em duas etapas: digite o código de seis dígitos que enviamos para o seu e-mail."
+      }
     >
-      <form className="login-form" onSubmit={submitPassword}>
-        <label>
-          E-mail
-          <input
-            type="email"
-            placeholder="seuemail@canaltransforma.com.br"
-            required
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(ev) => setEmail(ev.target.value)}
-          />
-        </label>
-        <label>
-          Senha
-          <input
-            type="password"
-            placeholder="Digite sua senha"
-            required
-            name="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(ev) => setPassword(ev.target.value)}
-          />
-        </label>
-        <button className="login-submit" type="submit" disabled={busy}>
-          {busy ? "Entrando..." : "Entrar"} <b>→</b>
-        </button>
-        {info && <p className="login-message">{info}</p>}
-        {error && <p className="login-message login-error">{error}</p>}
-        <div className="editorial-links">
-          <Link to="/editorial/criar-conta">Criar conta</Link>
-          <Link to="/editorial/esqueci-senha">Esqueci minha senha</Link>
-        </div>
-      </form>
+      {step === "password" ? (
+        <form className="login-form" onSubmit={submitPassword}>
+          <label>
+            E-mail
+            <input
+              type="email"
+              placeholder="seuemail@canaltransforma.com.br"
+              required
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(ev) => setEmail(ev.target.value)}
+            />
+          </label>
+          <label>
+            Senha
+            <input
+              type="password"
+              placeholder="Digite sua senha"
+              required
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(ev) => setPassword(ev.target.value)}
+            />
+          </label>
+          <button className="login-submit" type="submit" disabled={busy}>
+            {busy ? "Entrando..." : "Entrar"} <b>→</b>
+          </button>
+          {info && <p className="login-message">{info}</p>}
+          {error && <p className="login-message login-error">{error}</p>}
+          <div className="editorial-links">
+            <Link to="/editorial/criar-conta">Criar conta</Link>
+            <Link to="/editorial/esqueci-senha">Esqueci minha senha</Link>
+          </div>
+        </form>
+      ) : (
+        <form className="login-form" onSubmit={submitCode}>
+          <p className="password-hint">
+            E-mail: <strong>{email}</strong>
+          </p>
+          <label>
+            Código de seis dígitos
+            <input
+              className="otp-input"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              value={code}
+              onChange={(ev) => setCode(ev.target.value.replace(/\D/g, ""))}
+              required
+            />
+          </label>
+          <button className="login-submit" type="submit" disabled={busy}>
+            {busy ? "Verificando..." : "Confirmar código"} <b>→</b>
+          </button>
+          <button type="button" className="editorial-secondary" onClick={resendCode} disabled={busy}>
+            Reenviar código
+          </button>
+          {info && <p className="login-message">{info}</p>}
+          {error && <p className="login-message login-error">{error}</p>}
+          <button
+            type="button"
+            className="editorial-link-button"
+            onClick={() => {
+              setStep("password");
+              setCode("");
+              setError("");
+              setInfo("");
+            }}
+          >
+            ← Usar outro e-mail
+          </button>
+        </form>
+      )}
     </EditorialShell>
   );
 }
+
