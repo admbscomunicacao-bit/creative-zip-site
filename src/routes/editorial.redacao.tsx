@@ -377,9 +377,31 @@ function ArticleEditor({
   };
 
   const insertHtml = (html: string) => {
-    bodyRef.current?.focus();
-    document.execCommand("insertHTML", false, html);
+    const body = bodyRef.current;
+    if (!body) return;
+    body.focus();
+    const selection = window.getSelection();
+    let range = selection && selection.rangeCount ? selection.getRangeAt(0) : null;
+    if (!range || !body.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(body);
+      range.collapse(false);
+    }
+    range.deleteContents();
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const fragment = template.content;
+    const last = fragment.lastChild;
+    range.insertNode(fragment);
+    if (last) {
+      const after = document.createRange();
+      after.setStartAfter(last);
+      after.collapse(true);
+      selection?.removeAllRanges();
+      selection?.addRange(after);
+    }
   };
+
 
   const withUpload = async (multiple: boolean, render: (url: string, kind: string) => string) => {
     setLocalError(null);
