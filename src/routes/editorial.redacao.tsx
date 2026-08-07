@@ -377,9 +377,31 @@ function ArticleEditor({
   };
 
   const insertHtml = (html: string) => {
-    bodyRef.current?.focus();
-    document.execCommand("insertHTML", false, html);
+    const body = bodyRef.current;
+    if (!body) return;
+    body.focus();
+    const selection = window.getSelection();
+    let range = selection && selection.rangeCount ? selection.getRangeAt(0) : null;
+    if (!range || !body.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(body);
+      range.collapse(false);
+    }
+    range.deleteContents();
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const fragment = template.content;
+    const last = fragment.lastChild;
+    range.insertNode(fragment);
+    if (last) {
+      const after = document.createRange();
+      after.setStartAfter(last);
+      after.collapse(true);
+      selection?.removeAllRanges();
+      selection?.addRange(after);
+    }
   };
+
 
   const withUpload = async (multiple: boolean, render: (url: string, kind: string) => string) => {
     setLocalError(null);
@@ -681,8 +703,11 @@ function ArticleEditor({
               onClick={() =>
                 insertHtml(
                   `<div class="article-columns cols-${n}">${Array.from({ length: n })
-                    .map(() => "<div><p>Escreva aqui ou insira uma foto/vídeo…</p></div>")
-                    .join("")}</div><p><br /></p>`,
+                    .map(
+                      () =>
+                        `<div><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
+                    )
+                    .join("")}</div><p><br></p>`,
                 )
               }
             >
@@ -693,7 +718,10 @@ function ArticleEditor({
 
         <div className="block-actions block-actions-insert">
           <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
-          <button type="button" onClick={() => insertHtml("<p>Novo bloco de texto…</p>")}>
+          <button
+            type="button"
+            onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}
+          >
             + Texto
           </button>
           <button
@@ -702,7 +730,7 @@ function ArticleEditor({
               void withUpload(false, (url, kind) =>
                 kind === "video"
                   ? `<figure><video controls src="${url}"></video></figure>`
-                  : `<figure><img src="${url}" alt="" /><figcaption>Legenda da imagem</figcaption></figure>`,
+                  : `<figure><img src="${url}" alt="" /><figcaption data-ph="Legenda da imagem"><br></figcaption></figure>`,
               )
             }
           >
@@ -725,3 +753,4 @@ function ArticleEditor({
     </main>
   );
 }
+
