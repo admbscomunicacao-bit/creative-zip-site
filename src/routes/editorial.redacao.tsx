@@ -12,6 +12,7 @@ import {
   listNewsroomReporters,
   saveArticle,
   type Article,
+  type ArticleInput,
 } from "@/lib/articles.functions";
 import { pickFiles, uploadArticleMedia } from "@/lib/article-media";
 
@@ -96,8 +97,7 @@ function Newsroom() {
   }, [tab, query, published, drafts]);
 
   const saveMutation = useMutation({
-    mutationFn: (input: Parameters<typeof saveArticle>[0] extends never ? never : any) =>
-      persistArticle(input),
+    mutationFn: (input: { data: ArticleInput }) => persistArticle(input),
     onSuccess: (saved: Article) => {
       void queryClient.invalidateQueries({ queryKey: ["editorial-articles"] });
       setEditing(saved);
