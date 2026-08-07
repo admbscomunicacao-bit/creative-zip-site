@@ -100,7 +100,7 @@ function UsersAdmin() {
               <th>Pessoa</th>
               <th>Status</th>
               <th>Papel</th>
-              <th>MFA</th>
+              <th>Telefone</th>
               <th>Ações</th>
             </tr>
           </thead>
