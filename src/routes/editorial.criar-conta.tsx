@@ -133,12 +133,14 @@ function CreateAccount() {
           />
         </label>
         <label>
-          Telefone (opcional)
+          Telefone celular
           <input
             type="tel"
+            required
+            inputMode="numeric"
             value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="(17) 90000-0000"
+            onChange={(e) => set("phone", formatPhoneBR(e.target.value))}
+            placeholder="(17) 99999-9999"
           />
         </label>
         <p className="password-hint">
