@@ -30,7 +30,7 @@ export function LeadStory({ story }: { story: Story }) {
         <h2>{story.title}</h2>
         <p>{story.summary}</p>
         <span className="story-action">
-          Ler mais <b>→</b>
+          Ler reportagem sobre {story.section.toLowerCase()} <b>→</b>
         </span>
       </article>
     </StoryLink>
