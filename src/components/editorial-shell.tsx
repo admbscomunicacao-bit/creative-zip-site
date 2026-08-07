@@ -15,8 +15,8 @@ export function EditorialShell({
   backTo = "/",
   backLabel = "← Voltar para o portal",
 }: {
-  eyebrow: string;
-  title: string;
+  eyebrow?: string;
+  title?: string;
   intro?: ReactNode;
   children: ReactNode;
   backTo?: string;
@@ -29,11 +29,13 @@ export function EditorialShell({
         <Link to={backTo} className="back-link">
           {backLabel}
         </Link>
-        <div className="login-intro">
-          <p className="eyebrow">{eyebrow}</p>
-          <h1>{title}</h1>
-          {intro ? <p>{intro}</p> : null}
-        </div>
+        {title ? (
+          <div className="login-intro">
+            {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+            <h1>{title}</h1>
+            {intro ? <p>{intro}</p> : null}
+          </div>
+        ) : null}
         {children}
       </section>
       <SiteFooter />
