@@ -44,14 +44,14 @@ function UsersAdmin() {
   const users = useQuery({
     queryKey: ["editorial-users"],
     queryFn: () => fetchUsers(),
-    enabled: Boolean(account?.isAdmin && account?.mfaVerified),
+    enabled: Boolean(account?.isAdmin),
     retry: false,
   });
 
   const audit = useQuery({
     queryKey: ["editorial-audit"],
     queryFn: () => fetchAudit(),
-    enabled: Boolean(account?.isAdmin && account?.mfaVerified),
+    enabled: Boolean(account?.isAdmin),
     retry: false,
   });
 
