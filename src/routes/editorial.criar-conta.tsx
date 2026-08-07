@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { EditorialShell } from "@/components/editorial-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { friendlyAuthError, signupSchema } from "@/lib/editorial-auth";
+import { formatPhoneBR, friendlyAuthError, signupSchema, toE164BR } from "@/lib/editorial-auth";
 
 export const Route = createFileRoute("/editorial/criar-conta")({
   head: () => ({
