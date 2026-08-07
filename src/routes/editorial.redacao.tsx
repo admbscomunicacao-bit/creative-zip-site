@@ -352,6 +352,19 @@ function ArticleEditor({
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const savedRange = useRef<Range | null>(null);
+  const [inColumn, setInColumn] = useState(false);
+
+  useEffect(() => {
+    const onSelect = () => {
+      const node = window.getSelection()?.anchorNode ?? null;
+      const el = node instanceof Element ? node : node?.parentElement ?? null;
+      const cell = el?.closest(".article-columns > div") ?? null;
+      setInColumn(Boolean(cell && bodyRef.current?.contains(cell)));
+    };
+    document.addEventListener("selectionchange", onSelect);
+    return () => document.removeEventListener("selectionchange", onSelect);
+  }, []);
+
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
