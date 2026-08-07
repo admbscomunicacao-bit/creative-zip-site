@@ -186,6 +186,20 @@ async function assertApprovedAdmin(context: {
   userId: string;
   claims: Record<string, unknown>;
 }) {
+  const amr = Array.isArray(context.claims["amr"]) ? context.claims["amr"] : [];
+  const secondFactorVerified =
+    context.claims["aal"] === "aal2" ||
+    amr.some(
+      (entry) =>
+        typeof entry === "object" &&
+        entry !== null &&
+        ["otp", "email", "email_otp", "totp", "mfa/totp"].includes(
+          String((entry as Record<string, unknown>)["method"] ?? ""),
+        ),
+    );
+  if (!secondFactorVerified) {
+    throw new Error("Confirme o código de verificação antes de acessar a administração.");
+  }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.rpc("is_editorial_admin", {
     _user_id: context.userId,
@@ -324,12 +338,9 @@ export const recordLoginFailure = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("audit_log").insert({
-      action: "login_failed",
-      detail: { email: data.email.slice(0, 255), reason: data.reason },
-    });
+  .handler(async () => {
+    // This endpoint is intentionally a no-op. Persisting unauthenticated data lets
+    // attackers flood the audit table; real sign-in events are audited after auth.
     return { ok: true };
   });
 

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { sanitizeArticleHtml } from "@/lib/article-html";
 
 export type PublicArticle = {
   slug: string;
@@ -34,7 +35,7 @@ const toPublic = (row: Row): PublicArticle => ({
   summary: row.summary,
   section: row.section,
   color: row.color,
-  bodyHtml: row.body_html ?? "",
+  bodyHtml: sanitizeArticleHtml(row.body_html ?? ""),
   coverUrl: row.cover_url,
   authorName: row.author_name,
   publishedAt: row.published_at,

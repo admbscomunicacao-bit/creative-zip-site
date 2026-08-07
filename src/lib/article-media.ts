@@ -3,16 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
 
 export const MEDIA_ACCEPT = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm";
+const MEDIA_TYPES = new Set(MEDIA_ACCEPT.split(","));
+const MAX_MEDIA_SIZE = 25 * 1024 * 1024;
 
 export async function uploadArticleMedia(file: File): Promise<{ url: string; kind: "image" | "video" }> {
-  if (file.size > 25 * 1024 * 1024) {
+  if (!MEDIA_TYPES.has(file.type)) {
+    throw new Error("Formato não aceito. Use JPG, PNG, WEBP, GIF, MP4 ou WEBM.");
+  }
+  if (!file.size || file.size > MAX_MEDIA_SIZE) {
     throw new Error("Arquivo muito grande. O limite é 25 MB.");
   }
   const { data: session } = await supabase.auth.getUser();
   const userId = session.user?.id;
   if (!userId) throw new Error("Sessão expirada. Entre novamente.");
 
-  const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+  const extByType: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+  };
+  const ext = extByType[file.type];
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   const { error } = await supabase.storage

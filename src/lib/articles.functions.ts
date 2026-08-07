@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sanitizeArticleHtml } from "@/lib/article-html";
 import { z } from "zod";
 
 export type ArticleStatus = "draft" | "published";
@@ -114,7 +115,7 @@ export const saveArticle = createServerFn({ method: "POST" })
       section: data.section,
       color: sectionColors[data.section] ?? "blue",
       status: data.status,
-      body_html: data.bodyHtml,
+      body_html: sanitizeArticleHtml(data.bodyHtml),
       cover_url: data.coverUrl ?? null,
       author_name: data.authorName ?? "",
     };
