@@ -83,6 +83,7 @@ function Home() {
                   to="/noticia/$slug"
                   params={{ slug: s.slug }}
                   className="carousel-link"
+                  aria-label={`Ler reportagem: ${s.title}`}
                   tabIndex={i === index ? 0 : -1}
                 >
                   Ler reportagem <b>→</b>
