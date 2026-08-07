@@ -75,14 +75,9 @@ function ProfilePage() {
   };
 
   return (
-    <EditorialShell
-      eyebrow="Área editorial"
-      title="Meu perfil"
-      intro="Foto e biografia são opcionais, mas ajudam a identificar sua assinatura nas reportagens."
-      backTo="/editorial"
-      backLabel="← Voltar para o login"
-    >
+    <EditorialShell backTo="/editorial" backLabel="← Voltar para o login">
       {account && (
+
         <div className="editorial-status-card">
           <p>
             <strong>{account.email}</strong>
