@@ -18,6 +18,7 @@ import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
 import { Route as EditorialConfirmarEmailRouteImport } from './routes/editorial.confirmar-email'
 import { Route as EditorialCriarContaRouteImport } from './routes/editorial.criar-conta'
 import { Route as EditorialEsqueciSenhaRouteImport } from './routes/editorial.esqueci-senha'
+import { Route as EditorialMfaRouteImport } from './routes/editorial.mfa'
 import { Route as EditorialPerfilRouteImport } from './routes/editorial.perfil'
 import { Route as EditorialRedacaoRouteImport } from './routes/editorial.redacao'
 import { Route as EditorialRedefinirSenhaRouteImport } from './routes/editorial.redefinir-senha'
@@ -70,6 +71,11 @@ const EditorialEsqueciSenhaRoute = EditorialEsqueciSenhaRouteImport.update({
   path: '/editorial/esqueci-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorialMfaRoute = EditorialMfaRouteImport.update({
+  id: '/editorial/mfa',
+  path: '/editorial/mfa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditorialPerfilRoute = EditorialPerfilRouteImport.update({
   id: '/editorial/perfil',
   path: '/editorial/perfil',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
   '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
   '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
   '/editorial/criar-conta': typeof EditorialCriarContaRoute
   '/editorial/esqueci-senha': typeof EditorialEsqueciSenhaRoute
+  '/editorial/mfa': typeof EditorialMfaRoute
   '/editorial/perfil': typeof EditorialPerfilRoute
   '/editorial/redacao': typeof EditorialRedacaoRoute
   '/editorial/redefinir-senha': typeof EditorialRedefinirSenhaRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
     | '/editorial/redacao'
     | '/editorial/redefinir-senha'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
     | '/editorial/redacao'
     | '/editorial/redefinir-senha'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/editorial/confirmar-email'
     | '/editorial/criar-conta'
     | '/editorial/esqueci-senha'
+    | '/editorial/mfa'
     | '/editorial/perfil'
     | '/editorial/redacao'
     | '/editorial/redefinir-senha'
@@ -216,6 +228,7 @@ export interface RootRouteChildren {
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
   EditorialCriarContaRoute: typeof EditorialCriarContaRoute
   EditorialEsqueciSenhaRoute: typeof EditorialEsqueciSenhaRoute
+  EditorialMfaRoute: typeof EditorialMfaRoute
   EditorialPerfilRoute: typeof EditorialPerfilRoute
   EditorialRedacaoRoute: typeof EditorialRedacaoRoute
   EditorialRedefinirSenhaRoute: typeof EditorialRedefinirSenhaRoute
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorialEsqueciSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editorial/mfa': {
+      id: '/editorial/mfa'
+      path: '/editorial/mfa'
+      fullPath: '/editorial/mfa'
+      preLoaderRoute: typeof EditorialMfaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editorial/perfil': {
       id: '/editorial/perfil'
       path: '/editorial/perfil'
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,
   EditorialCriarContaRoute: EditorialCriarContaRoute,
   EditorialEsqueciSenhaRoute: EditorialEsqueciSenhaRoute,
+  EditorialMfaRoute: EditorialMfaRoute,
   EditorialPerfilRoute: EditorialPerfilRoute,
   EditorialRedacaoRoute: EditorialRedacaoRoute,
   EditorialRedefinirSenhaRoute: EditorialRedefinirSenhaRoute,
@@ -355,3 +376,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
