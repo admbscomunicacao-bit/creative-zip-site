@@ -721,7 +721,7 @@ function ArticleEditor({
             if (last?.classList.contains("article-columns")) {
               const paragraph = document.createElement("p");
               paragraph.className = "article-paragraph";
-              paragraph.dataset.ph = "Continue escrevendo aqui…";
+              paragraph.dataset["ph"] = "Continue escrevendo aqui…";
               paragraph.appendChild(document.createElement("br"));
               body.appendChild(paragraph);
             }
