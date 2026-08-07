@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { EditorialShell } from "@/components/editorial-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { friendlyAuthError, signupSchema } from "@/lib/editorial-auth";
+import { formatPhoneBR, friendlyAuthError, signupSchema, toE164BR } from "@/lib/editorial-auth";
 
 export const Route = createFileRoute("/editorial/criar-conta")({
   head: () => ({
@@ -58,7 +58,7 @@ function CreateAccount() {
           emailRedirectTo: `${window.location.origin}/editorial/confirmar-email`,
           data: {
             full_name: parsed.data.fullName,
-            phone: parsed.data.phone ?? "",
+            phone: toE164BR(parsed.data.phone),
             terms_accepted: true,
           },
         },
@@ -133,12 +133,14 @@ function CreateAccount() {
           />
         </label>
         <label>
-          Telefone (opcional)
+          Telefone celular
           <input
             type="tel"
+            required
+            inputMode="numeric"
             value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="(17) 90000-0000"
+            onChange={(e) => set("phone", formatPhoneBR(e.target.value))}
+            placeholder="(17) 99999-9999"
           />
         </label>
         <p className="password-hint">

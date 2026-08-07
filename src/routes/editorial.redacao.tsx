@@ -45,11 +45,11 @@ function Newsroom() {
         <p className="editorial-badges">
           <span className="status-pill status-approved">Aprovado</span>
           <span className="status-pill">{account.isAdmin ? "Administrador" : "Repórter"}</span>
-          <span className="status-pill">MFA validado</span>
+          <span className="status-pill">Código verificado</span>
         </p>
         <div className="editorial-links">
           <Link to="/editorial/perfil">Meu perfil</Link>
-          <Link to="/editorial/seguranca">Segurança e autenticadores</Link>
+          <Link to="/editorial/seguranca">Segurança da conta</Link>
           {account.isAdmin && <Link to="/editorial/usuarios">Administrar usuários</Link>}
           <button
             type="button"
@@ -64,7 +64,7 @@ function Newsroom() {
         </div>
         <p className="password-hint">
           As ferramentas de criação, edição e publicação de reportagens entram aqui. Todas as ações
-          continuam validadas no servidor por status aprovado, papel e sessão com MFA.
+          continuam validadas no servidor por status aprovado, papel e sessão verificada por código.
         </p>
       </div>
     </EditorialShell>

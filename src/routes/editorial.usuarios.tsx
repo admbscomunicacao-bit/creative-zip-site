@@ -100,7 +100,7 @@ function UsersAdmin() {
               <th>Pessoa</th>
               <th>Status</th>
               <th>Papel</th>
-              <th>MFA</th>
+              <th>Telefone</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -116,7 +116,7 @@ function UsersAdmin() {
                   <span className={`status-pill status-${u.status}`}>{u.status}</span>
                 </td>
                 <td>{u.roles.join(", ") || "—"}</td>
-                <td>{u.mfaEnrolledAt ? "sim" : "não"}</td>
+                <td>{u.phone || "—"}</td>
                 <td className="admin-actions">
                   {(["approved", "pending", "blocked"] as AccountStatus[])
                     .filter((s) => s !== u.status)

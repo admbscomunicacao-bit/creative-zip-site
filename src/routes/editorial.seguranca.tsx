@@ -1,5 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { EditorialShell, useEditorialAccount } from "@/components/editorial-shell";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +11,12 @@ export const Route = createFileRoute("/editorial/seguranca")({
       {
         name: "description",
         content:
-          "Gerencie seus aplicativos autenticadores e a segurança da sua conta editorial do Canal Transforma.",
+          "Gerencie a senha e a verificação em duas etapas por código de e-mail da sua conta editorial do Canal Transforma.",
       },
       { property: "og:title", content: "Segurança da conta editorial — Canal Transforma" },
       {
         property: "og:description",
-        content: "Autenticadores e ações sensíveis da conta editorial do Canal Transforma.",
+        content: "Senha e verificação em duas etapas da conta editorial do Canal Transforma.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,86 +28,68 @@ export const Route = createFileRoute("/editorial/seguranca")({
 function SecurityPage() {
   const navigate = useNavigate();
   const { data: account } = useEditorialAccount();
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const factors = useQuery({
-    queryKey: ["mfa-factors"],
-    queryFn: async () => {
-      const { data, error: listError } = await supabase.auth.mfa.listFactors();
-      if (listError) throw new Error(listError.message);
-      return data.totp ?? [];
-    },
-    retry: false,
-  });
-
-  const removeFactor = async (factorId: string) => {
+  const sendPasswordReset = async () => {
+    if (!account) return;
     setError("");
     setInfo("");
-    if (!account) return;
-    // Sensitive action: re-confirm the current password before unenrolling.
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: account.email,
-      password,
+    setBusy(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(account.email, {
+      redirectTo: `${window.location.origin}/editorial/redefinir-senha`,
     });
-    if (reauthError) {
-      setError("Confirme sua senha atual para remover um autenticador.");
+    setBusy(false);
+    if (resetError) {
+      setError(friendlyAuthError(resetError.message));
       return;
     }
-    const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId });
-    if (unenrollError) {
-      setError(friendlyAuthError(unenrollError.message));
-      return;
-    }
-    setPassword("");
-    setInfo("Autenticador removido.");
-    await factors.refetch();
+    setInfo("Enviamos um link seguro para você definir uma nova senha.");
+  };
+
+  const signOutEverywhere = async () => {
+    setError("");
+    setBusy(true);
+    await supabase.auth.signOut({ scope: "global" });
+    setBusy(false);
+    await navigate({ to: "/editorial" });
   };
 
   return (
     <EditorialShell
       eyebrow="Área editorial"
       title="Segurança da conta"
-      intro="Cadastre um segundo autenticador como recuperação e remova dispositivos que você não usa mais."
+      intro="Sua conta usa e-mail e senha mais um código de verificação de seis dígitos enviado por e-mail a cada acesso à redação."
       backTo="/editorial/perfil"
       backLabel="← Voltar para o perfil"
     >
       <div className="editorial-status-card">
-        <h2 className="admin-subtitle">Autenticadores cadastrados</h2>
-        <ul className="audit-list">
-          {(factors.data ?? []).length === 0 && <li>Nenhum autenticador cadastrado.</li>}
-          {(factors.data ?? []).map((f) => (
-            <li key={f.id}>
-              <strong>{f.friendly_name || "Autenticador TOTP"}</strong> — {f.status}
-              <br />
-              <button
-                type="button"
-                className="editorial-secondary"
-                onClick={() => removeFactor(f.id)}
-              >
-                Remover
-              </button>
-            </li>
-          ))}
-        </ul>
-        <label>
-          Senha atual (obrigatória para ações sensíveis)
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
+        <h2 className="admin-subtitle">Verificação em duas etapas</h2>
+        <p className="password-hint">
+          A cada login na área editorial enviamos um código de seis dígitos para{" "}
+          <strong>{account?.email ?? "seu e-mail"}</strong>. O código expira em poucos minutos e só
+          pode ser usado uma vez. Sem esse código, a redação e as ações administrativas continuam
+          bloqueadas no servidor.
+        </p>
         <div className="editorial-links">
           <button
             type="button"
             className="editorial-link-button"
-            onClick={() => navigate({ to: "/editorial/mfa" })}
+            disabled={busy}
+            onClick={sendPasswordReset}
           >
-            Adicionar autenticador
+            Alterar minha senha
           </button>
+          <button
+            type="button"
+            className="editorial-link-button"
+            disabled={busy}
+            onClick={signOutEverywhere}
+          >
+            Encerrar sessões em todos os dispositivos
+          </button>
+          <Link to="/editorial/perfil">Meu perfil</Link>
         </div>
         {info && <p className="login-message">{info}</p>}
         {error && <p className="login-message login-error">{error}</p>}

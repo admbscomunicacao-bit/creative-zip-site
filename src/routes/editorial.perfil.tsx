@@ -6,7 +6,7 @@ import {
   editorialSignOut,
   useEditorialAccount,
 } from "@/components/editorial-shell";
-import { statusMessage } from "@/lib/editorial-auth";
+import { formatPhoneBR, statusMessage } from "@/lib/editorial-auth";
 import { updateMyEditorialProfile } from "@/lib/editorial.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -145,10 +145,7 @@ function ProfilePage() {
           </p>
           {statusMessage(account.status) && <p>{statusMessage(account.status)}</p>}
           <div className="editorial-links">
-            {account.status === "approved" && <Link to="/editorial/mfa">Configurar MFA</Link>}
-            {account.status === "approved" && account.mfaEnrolledAt && (
-              <Link to="/editorial/redacao">Ir para a redação</Link>
-            )}
+            {account.status === "approved" && <Link to="/editorial/redacao">Ir para a redação</Link>}
             <Link to="/editorial/seguranca">Segurança</Link>
             <button
               type="button"
@@ -214,11 +211,14 @@ function ProfilePage() {
           />
         </label>
         <label>
-          Telefone (opcional)
+          Telefone celular
           <input
             type="tel"
+            required
+            inputMode="numeric"
+            placeholder="(17) 99999-9999"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e) => setForm({ ...form, phone: formatPhoneBR(e.target.value) })}
           />
         </label>
         <label>
