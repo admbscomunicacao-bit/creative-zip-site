@@ -661,8 +661,27 @@ function ArticleEditor({
         />
 
         <div className="block-actions">
+          {[1, 2, 3].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() =>
+                insertHtml(
+                  `<div class="article-columns cols-${n}">${Array.from({ length: n })
+                    .map(() => "<div><p>Escreva aqui ou insira uma foto/vídeo…</p></div>")
+                    .join("")}</div><p><br /></p>`,
+                )
+              }
+            >
+              + {n} coluna{n > 1 ? "s" : ""}
+            </button>
+          ))}
+        </div>
+
+        <div className="block-actions block-actions-insert">
+          <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
           <button type="button" onClick={() => insertHtml("<p>Novo bloco de texto…</p>")}>
-            + Bloco de texto
+            + Texto
           </button>
           <button
             type="button"
@@ -687,17 +706,8 @@ function ArticleEditor({
           >
             + Galeria
           </button>
-          <button
-            type="button"
-            onClick={() =>
-              insertHtml(
-                '<div class="article-columns"><div><p>Coluna 1</p></div><div><p>Coluna 2</p></div></div><p></p>',
-              )
-            }
-          >
-            + Layout em colunas
-          </button>
         </div>
+
       </section>
     </main>
   );
