@@ -16,7 +16,7 @@ import {
 
 export const Route = createFileRoute("/editorial/usuarios")({
   validateSearch: (search: Record<string, unknown>) => ({
-    u: typeof search.u === "string" ? search.u : undefined,
+    u: typeof search["u"] === "string" ? (search["u"] as string) : undefined,
   }),
   head: () => ({
     meta: [
