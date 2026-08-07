@@ -58,7 +58,7 @@ function CreateAccount() {
           emailRedirectTo: `${window.location.origin}/editorial/confirmar-email`,
           data: {
             full_name: parsed.data.fullName,
-            phone: parsed.data.phone ?? "",
+            phone: toE164BR(parsed.data.phone),
             terms_accepted: true,
           },
         },
