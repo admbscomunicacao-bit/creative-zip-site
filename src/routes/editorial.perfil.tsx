@@ -90,10 +90,6 @@ function ProfilePage() {
                   ? "Aguardando aprovação"
                   : "Bloqueado"}
             </span>
-            <span className="status-pill">{account.isAdmin ? "Administrador" : "Repórter"}</span>
-            <span className="status-pill">
-              {account.mfaEnrolledAt ? "MFA configurado" : "MFA pendente"}
-            </span>
           </p>
           {statusMessage(account.status) && <p>{statusMessage(account.status)}</p>}
           <div className="editorial-links">
