@@ -211,7 +211,7 @@ function Newsroom() {
         <div className="admin-side-links">
           <Link to="/editorial/perfil">Meu perfil</Link>
           <Link to="/editorial/seguranca">Segurança da conta</Link>
-          {account.isAdmin ? <Link to="/editorial/usuarios">Administrar usuários</Link> : null}
+          {account.isAdmin ? <Link to="/editorial/usuarios" search={{ u: undefined }}>Administrar usuários</Link> : null}
           <Link to="/">Ver portal público ↗</Link>
           <button
             type="button"
@@ -276,7 +276,7 @@ function Newsroom() {
                 </button>
               ))}
               {account.isAdmin ? (
-                <button type="button" onClick={() => void navigate({ to: "/editorial/usuarios" })}>
+                <button type="button" onClick={() => void navigate({ to: "/editorial/usuarios", search: { u: undefined } })}>
                   <b>Administrar cadastros</b>
                   <span>Aprovar, bloquear e definir permissões</span>
                   <ArrowRight size={20} />

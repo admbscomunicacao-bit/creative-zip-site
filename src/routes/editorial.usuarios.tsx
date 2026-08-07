@@ -80,7 +80,7 @@ function UsersAdmin() {
   );
 
   const select = (id: string | undefined) =>
-    void navigate({ to: "/editorial/usuarios", search: id ? { u: id } : {}, replace: true });
+    void navigate({ to: "/editorial/usuarios", search: { u: id }, replace: true });
 
   const act = async (fn: () => Promise<unknown>) => {
     setError("");
