@@ -145,10 +145,7 @@ function ProfilePage() {
           </p>
           {statusMessage(account.status) && <p>{statusMessage(account.status)}</p>}
           <div className="editorial-links">
-            {account.status === "approved" && <Link to="/editorial/mfa">Configurar MFA</Link>}
-            {account.status === "approved" && account.mfaEnrolledAt && (
-              <Link to="/editorial/redacao">Ir para a redação</Link>
-            )}
+            {account.status === "approved" && <Link to="/editorial/redacao">Ir para a redação</Link>}
             <Link to="/editorial/seguranca">Segurança</Link>
             <button
               type="button"
