@@ -60,10 +60,8 @@ const handler = createAuthEmailHandler({
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
     },
   },
-}),
-    },
-  },
 })
+
 
 export const Route = createFileRoute("/lovable/email/auth/webhook")({
   server: {
