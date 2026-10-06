@@ -10,9 +10,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // embed them even if the build environment does not provide the .env file.
 const PUBLIC_SUPABASE_URL = "https://vysbmffmlaiqwbnnlhud.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_w0MuIoV-V2lNaI89wUqiJw_XMcTKfts";
-process.env.VITE_SUPABASE_URL ||= PUBLIC_SUPABASE_URL;
-process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||= PUBLIC_SUPABASE_KEY;
-process.env.VITE_SUPABASE_PROJECT_ID ||= "vysbmffmlaiqwbnnlhud";
+process.env['VITE_SUPABASE_URL'] ||= PUBLIC_SUPABASE_URL;
+process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||= PUBLIC_SUPABASE_KEY;
+process.env['VITE_SUPABASE_PROJECT_ID'] ||= "vysbmffmlaiqwbnnlhud";
 
 export default defineConfig({
   tanstackStart: {
