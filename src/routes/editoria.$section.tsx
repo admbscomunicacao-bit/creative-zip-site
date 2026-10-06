@@ -7,7 +7,7 @@ import { sectionBySlug, sections, stories } from "@/data/stories";
 export const Route = createFileRoute("/editoria/$section")({
   head: ({ params }) => {
     const s = sectionBySlug(params.section);
-    const title = `${s?.name ?? "Editoria"} — Canal Transforma`;
+    const title = `${s?.name ?? "Editoria"} | Canal Transforma`;
     const description = `Reportagens de ${s?.name ?? "Catanduva"} no Canal Transforma: informação local com apuração e contexto.`;
     return {
       meta: [

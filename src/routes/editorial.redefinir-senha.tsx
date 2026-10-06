@@ -9,12 +9,12 @@ import { recordAuthEvent } from "@/lib/editorial.functions";
 export const Route = createFileRoute("/editorial/redefinir-senha")({
   head: () => ({
     meta: [
-      { title: "Definir nova senha — Canal Transforma" },
+      { title: "Definir nova senha | Canal Transforma" },
       {
         name: "description",
         content: "Crie uma nova senha forte para sua conta da área editorial do Canal Transforma.",
       },
-      { property: "og:title", content: "Definir nova senha — Canal Transforma" },
+      { property: "og:title", content: "Definir nova senha | Canal Transforma" },
       {
         property: "og:description",
         content: "Conclusão da recuperação de senha da redação do Canal Transforma.",

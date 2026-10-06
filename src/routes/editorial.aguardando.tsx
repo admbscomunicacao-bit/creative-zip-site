@@ -9,13 +9,13 @@ import {
 export const Route = createFileRoute("/editorial/aguardando")({
   head: () => ({
     meta: [
-      { title: "Conta em aprovação — Canal Transforma" },
+      { title: "Conta em aprovação | Canal Transforma" },
       {
         name: "description",
         content:
           "Sua conta editorial do Canal Transforma foi criada e aguarda a aprovação de um administrador.",
       },
-      { property: "og:title", content: "Conta em aprovação — Canal Transforma" },
+      { property: "og:title", content: "Conta em aprovação | Canal Transforma" },
       {
         property: "og:description",
         content: "Aguardando aprovação do administrador da redação do Canal Transforma.",

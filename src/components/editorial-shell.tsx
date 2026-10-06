@@ -7,6 +7,19 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyEditorialAccount, type EditorialAccount } from "@/lib/editorial.functions";
 
+/** Evita que "e-mail" quebre no hífen em títulos grandes. */
+function keepEmailTogether(text: string) {
+  return text.split(/(e-mail)/i).map((part, i) =>
+    /^e-mail$/i.test(part) ? (
+      <span key={i} className="nowrap">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
 export function EditorialShell({
   eyebrow,
   title,
@@ -32,7 +45,7 @@ export function EditorialShell({
         {title ? (
           <div className="login-intro">
             {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-            <h1>{title}</h1>
+            <h1>{keepEmailTogether(title)}</h1>
             {intro ? <p>{intro}</p> : null}
           </div>
         ) : null}
@@ -62,8 +75,6 @@ export function nextEditorialStep(account: EditorialAccount | null): string {
   if (account.status !== "approved") return "/editorial/aguardando";
   return "/editorial/redacao";
 }
-
-
 
 /** Client-side convenience redirect. Real enforcement lives in RLS + server functions. */
 export function useRequireEditorialAccount(options: { requireEditorialAccess?: boolean } = {}) {

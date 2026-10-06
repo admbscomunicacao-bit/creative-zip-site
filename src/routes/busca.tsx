@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
-import { stories } from "@/data/stories";
+import { sections, stories } from "@/data/stories";
 
 type Search = { q?: string | undefined };
 
@@ -13,12 +13,12 @@ export const Route = createFileRoute("/busca")({
 
   head: () => ({
     meta: [
-      { title: "Pesquisa — Canal Transforma" },
+      { title: "Pesquisa | Canal Transforma" },
       {
         name: "description",
         content: "Pesquise reportagens do Canal Transforma sobre Catanduva e região.",
       },
-      { property: "og:title", content: "Pesquisa — Canal Transforma" },
+      { property: "og:title", content: "Pesquisa | Canal Transforma" },
       {
         property: "og:description",
         content: "Encontre reportagens de cidade, política, serviços e esportes.",
@@ -34,9 +34,7 @@ function SearchPage() {
   const { q } = Route.useSearch();
   const term = (q ?? "").trim().toLowerCase();
   const results = term
-    ? stories.filter((s) =>
-        `${s.title} ${s.summary} ${s.section}`.toLowerCase().includes(term),
-      )
+    ? stories.filter((s) => `${s.title} ${s.summary} ${s.section}`.toLowerCase().includes(term))
     : [];
 
   return (
@@ -49,10 +47,27 @@ function SearchPage() {
         <p className="eyebrow">Pesquisa</p>
         <h1>{term ? `Resultados para “${q}”` : "O que você quer encontrar?"}</h1>
         <p className="listing-intro">
-          {term
-            ? `${results.length} ${results.length === 1 ? "reportagem encontrada" : "reportagens encontradas"}.`
-            : "Use a busca no topo da página para procurar reportagens."}
+          {!term
+            ? "Use a busca no topo da página para procurar reportagens."
+            : results.length === 0
+              ? "Nenhuma reportagem com esse termo. Tente outra palavra ou comece por uma editoria."
+              : `${results.length} ${results.length === 1 ? "reportagem encontrada" : "reportagens encontradas"}.`}
         </p>
+        {results.length === 0 && (
+          <div className="section-links search-sections">
+            {sections.map((s) => (
+              <Link
+                key={s.slug}
+                to="/editoria/$section"
+                params={{ section: s.slug }}
+                className={`section-link section-${s.color}`}
+              >
+                {s.name}
+                <b>→</b>
+              </Link>
+            ))}
+          </div>
+        )}
         {results.length > 0 && (
           <div className="listing-grid">
             {results.map((s) => (

@@ -4,17 +4,18 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { LeadStory, MiniStory, NewsCard } from "@/components/StoryCard";
 import { sections, stories } from "@/data/stories";
+import { brand } from "@/lib/brand";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Canal Transforma — Jornalismo local de Catanduva" },
+      { title: "Canal Transforma | Jornalismo local de Catanduva" },
       {
         name: "description",
         content:
           "Notícias de Catanduva com apuração e contexto: cidade, política, serviços e esportes no Canal Transforma.",
       },
-      { property: "og:title", content: "Canal Transforma — Jornalismo local de Catanduva" },
+      { property: "og:title", content: "Canal Transforma | Jornalismo local de Catanduva" },
       {
         property: "og:description",
         content: "Cidade, política, serviços e esportes com apuração e informação verificada.",
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
+
+const AUTOPLAY_MS = 6500;
 
 const colorClass: Record<string, string> = {
   cidade: "section-blue",
@@ -38,9 +41,9 @@ function Home() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((x) => (x + 1) % featured.length), 6500);
+    const id = setInterval(() => setIndex((x) => (x + 1) % featured.length), AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, [featured.length]);
+  }, [featured.length, index]);
 
   const active = featured[index] ?? featured[0]!;
   const daily = stories.slice(0, 4);
@@ -54,9 +57,7 @@ function Home() {
     <>
       <SiteHeader />
       <div className="home-shell">
-        <h1 className="sr-only">
-          Canal Transforma — jornalismo local de Catanduva e região
-        </h1>
+        <h1 className="sr-only">Canal Transforma: jornalismo local de Catanduva e região</h1>
         <section
           className={`headline-carousel ${active.color} has-cover`}
           aria-label="Principais notícias"
@@ -108,7 +109,11 @@ function Home() {
               →
             </button>
           </div>
-          <div className="carousel-controls" role="tablist" aria-label="Escolher notícia em destaque">
+          <div
+            className="carousel-controls"
+            role="tablist"
+            aria-label="Escolher notícia em destaque"
+          >
             {featured.map((s, i) => (
               <button
                 key={s.slug}
@@ -116,6 +121,7 @@ function Home() {
                 aria-selected={i === index}
                 aria-label={`Mostrar: ${s.title}`}
                 className={i === index ? "active" : ""}
+                style={{ "--carousel-delay": `${AUTOPLAY_MS}ms` } as React.CSSProperties}
                 onClick={() => go(i)}
               />
             ))}
@@ -124,7 +130,6 @@ function Home() {
 
         <section className="daily-section-header">
           <div>
-            <p className="eyebrow">Seleção diária</p>
             <h2>Notícias do dia</h2>
           </div>
           <div>
@@ -145,7 +150,6 @@ function Home() {
 
         <section className="section-header">
           <div>
-            <p className="eyebrow">Mais recentes</p>
             <h2>O que também aconteceu</h2>
           </div>
           <div>
@@ -166,7 +170,6 @@ function Home() {
 
         <section className="section-header category-header">
           <div>
-            <p className="eyebrow">Editorias</p>
             <h2>Encontre o que importa para você</h2>
           </div>
         </section>
@@ -185,6 +188,14 @@ function Home() {
         </div>
 
         <section className="editorial-band">
+          <img
+            className="editorial-band-mark"
+            src={brand.icon}
+            alt=""
+            width={512}
+            height={512}
+            loading="lazy"
+          />
           <div>
             <p className="eyebrow">Área restrita</p>
             <h2>Publique com responsabilidade.</h2>

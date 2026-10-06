@@ -14,12 +14,12 @@ import {
 export const Route = createFileRoute("/editorial/")({
   head: () => ({
     meta: [
-      { title: "Área editorial — Canal Transforma" },
+      { title: "Área editorial | Canal Transforma" },
       {
         name: "description",
         content: "Acesso restrito da redação do Canal Transforma: entre com seu e-mail e senha.",
       },
-      { property: "og:title", content: "Área editorial — Canal Transforma" },
+      { property: "og:title", content: "Área editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Entre com suas credenciais para acessar a redação do Canal Transforma.",

@@ -7,12 +7,12 @@ import { emailSchema, friendlyAuthError } from "@/lib/editorial-auth";
 export const Route = createFileRoute("/editorial/esqueci-senha")({
   head: () => ({
     meta: [
-      { title: "Recuperar senha editorial — Canal Transforma" },
+      { title: "Recuperar senha editorial | Canal Transforma" },
       {
         name: "description",
         content: "Receba um link seguro por e-mail para redefinir a senha da sua conta editorial.",
       },
-      { property: "og:title", content: "Recuperar senha editorial — Canal Transforma" },
+      { property: "og:title", content: "Recuperar senha editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Recuperação de senha da redação do Canal Transforma.",

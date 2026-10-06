@@ -7,13 +7,13 @@ import { friendlyAuthError } from "@/lib/editorial-auth";
 export const Route = createFileRoute("/editorial/seguranca")({
   head: () => ({
     meta: [
-      { title: "Segurança da conta editorial — Canal Transforma" },
+      { title: "Segurança da conta editorial | Canal Transforma" },
       {
         name: "description",
         content:
           "Gerencie a senha e a verificação em duas etapas por código de e-mail da sua conta editorial do Canal Transforma.",
       },
-      { property: "og:title", content: "Segurança da conta editorial — Canal Transforma" },
+      { property: "og:title", content: "Segurança da conta editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Senha e verificação em duas etapas da conta editorial do Canal Transforma.",

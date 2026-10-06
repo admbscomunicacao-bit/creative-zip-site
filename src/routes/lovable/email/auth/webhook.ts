@@ -24,7 +24,7 @@ const handler = createAuthEmailHandler({
   sendUrl: process.env['LOVABLE_SEND_URL'],
   emails: {
     signup: {
-      subject: 'Seu código de confirmação — Canal Transforma',
+      subject: 'Seu código de confirmação | Canal Transforma',
       render: (data) =>
         React.createElement(SignupEmail, {
           recipient: data.email,
@@ -32,22 +32,22 @@ const handler = createAuthEmailHandler({
         }),
     },
     invite: {
-      subject: 'Convite para a área editorial — Canal Transforma',
+      subject: 'Convite para a área editorial | Canal Transforma',
       render: (data) =>
         React.createElement(InviteEmail, { token: data.token ?? '' }),
     },
     magiclink: {
-      subject: 'Seu código de acesso — Canal Transforma',
+      subject: 'Seu código de acesso | Canal Transforma',
       render: (data) =>
         React.createElement(MagicLinkEmail, { token: data.token ?? '' }),
     },
     recovery: {
-      subject: 'Código para redefinir sua senha — Canal Transforma',
+      subject: 'Código para redefinir sua senha | Canal Transforma',
       render: (data) =>
         React.createElement(RecoveryEmail, { token: data.token ?? '' }),
     },
     email_change: {
-      subject: 'Confirme seu novo e-mail — Canal Transforma',
+      subject: 'Confirme seu novo e-mail | Canal Transforma',
       render: (data) =>
         React.createElement(EmailChangeEmail, {
           newEmail: data.new_email ?? '',
@@ -55,7 +55,7 @@ const handler = createAuthEmailHandler({
         }),
     },
     reauthentication: {
-      subject: 'Seu código de verificação — Canal Transforma',
+      subject: 'Seu código de verificação | Canal Transforma',
       render: (data) =>
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
     },

@@ -13,13 +13,13 @@ import {
 export const Route = createFileRoute("/editorial/criar-conta")({
   head: () => ({
     meta: [
-      { title: "Criar conta editorial — Canal Transforma" },
+      { title: "Criar conta editorial | Canal Transforma" },
       {
         name: "description",
         content:
           "Crie sua conta individual de repórter do Canal Transforma e confirme seu e-mail por código.",
       },
-      { property: "og:title", content: "Criar conta editorial — Canal Transforma" },
+      { property: "og:title", content: "Criar conta editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Cadastro da redação do Canal Transforma com confirmação de e-mail por código.",

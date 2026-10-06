@@ -17,12 +17,12 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 export const Route = createFileRoute("/editorial/perfil")({
   head: () => ({
     meta: [
-      { title: "Meu perfil editorial — Canal Transforma" },
+      { title: "Meu perfil editorial | Canal Transforma" },
       {
         name: "description",
         content: "Complete seu perfil de repórter do Canal Transforma com foto e biografia.",
       },
-      { property: "og:title", content: "Meu perfil editorial — Canal Transforma" },
+      { property: "og:title", content: "Meu perfil editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Perfil da equipe editorial do Canal Transforma.",

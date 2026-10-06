@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import logo from "@/assets/logo.png.asset.json";
+import { Search } from "lucide-react";
+import { brand } from "@/lib/brand";
 import { sections } from "@/data/stories";
 
 const navClass: Record<string, string> = {
@@ -25,16 +26,14 @@ export function SiteHeader() {
     <div className="site-chrome">
       <header className="site-header">
         <Link to="/" className="brand" aria-label="Canal Transforma, página inicial">
-          <img src={logo.url} alt="Canal Transforma" />
+          <img src={brand.logoOnBlue} alt="Canal Transforma" width={720} height={186} />
         </Link>
         <div className="header-actions">
           <form className="header-search" role="search" onSubmit={submit}>
             <label className="sr-only" htmlFor="site-search">
               Pesquisar notícias
             </label>
-            <span className="search-icon" aria-hidden="true">
-              ⌕
-            </span>
+            <Search className="search-icon" size={17} strokeWidth={2.25} aria-hidden="true" />
             <input
               id="site-search"
               type="search"
@@ -60,7 +59,8 @@ export function SiteHeader() {
         </div>
       </header>
       <div className="topline">
-        Catanduva, SP <span>•</span> Jornalismo local verificado
+        <span className="topline-star" aria-hidden="true" />
+        Catanduva, SP. Jornalismo local que apura antes de publicar.
       </div>
       <div className={`menu-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
         <button

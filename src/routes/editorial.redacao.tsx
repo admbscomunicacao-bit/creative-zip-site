@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { editorialSignOut, useRequireEditorialAccount } from "@/components/editorial-shell";
-import logo from "@/assets/logo.png.asset.json";
+import { brand } from "@/lib/brand";
 import { sections, type Section } from "@/data/stories";
 import {
   deleteArticle,
@@ -28,13 +28,13 @@ import { pickFiles, uploadArticleMedia } from "@/lib/article-media";
 export const Route = createFileRoute("/editorial/redacao")({
   head: () => ({
     meta: [
-      { title: "Painel da redação — Canal Transforma" },
+      { title: "Painel da redação | Canal Transforma" },
       {
         name: "description",
         content:
           "Painel editorial do Canal Transforma: biblioteca de reportagens, rascunhos, repórteres e editor de matéria.",
       },
-      { property: "og:title", content: "Painel da redação — Canal Transforma" },
+      { property: "og:title", content: "Painel da redação | Canal Transforma" },
       {
         property: "og:description",
         content: "Área interna da equipe editorial do Canal Transforma.",
@@ -167,7 +167,7 @@ function Newsroom() {
   return (
     <main className="admin-page">
       <aside className="admin-side">
-        <img src={logo.url} alt="Canal Transforma" />
+        <img src={brand.logoOnCream} alt="Canal Transforma" width={720} height={186} />
         <button
           type="button"
           className="new-report"
@@ -475,7 +475,7 @@ function ArticleEditor({
   return (
     <main className="admin-page">
       <aside className="admin-side">
-        <img src={logo.url} alt="Canal Transforma" />
+        <img src={brand.logoOnCream} alt="Canal Transforma" width={720} height={186} />
         <button type="button" onClick={onClose}>
           ← Voltar à biblioteca
         </button>

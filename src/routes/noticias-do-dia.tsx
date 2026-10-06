@@ -7,12 +7,12 @@ import { stories } from "@/data/stories";
 export const Route = createFileRoute("/noticias-do-dia")({
   head: () => ({
     meta: [
-      { title: "Notícias do dia — Canal Transforma" },
+      { title: "Notícias do dia | Canal Transforma" },
       {
         name: "description",
         content: "A seleção diária de reportagens do Canal Transforma sobre Catanduva.",
       },
-      { property: "og:title", content: "Notícias do dia — Canal Transforma" },
+      { property: "og:title", content: "Notícias do dia | Canal Transforma" },
       {
         property: "og:description",
         content: "A seleção diária da redação: cidade, política, serviços e esportes.",

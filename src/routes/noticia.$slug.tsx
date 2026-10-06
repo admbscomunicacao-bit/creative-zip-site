@@ -42,7 +42,7 @@ export const Route = createFileRoute("/noticia/$slug")({
   head: ({ params, loaderData }) => {
     const story = loaderData?.story;
     const url = `https://www.canaltransforma.com.br/noticia/${params.slug}`;
-    const title = story ? `${story.title} — Canal Transforma` : "Reportagem — Canal Transforma";
+    const title = story ? `${story.title} | Canal Transforma` : "Reportagem | Canal Transforma";
     const description = story?.summary ?? "Reportagem do Canal Transforma.";
     return {
       meta: [
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/noticia/$slug")({
                   name: "Canal Transforma",
                   logo: {
                     "@type": "ImageObject",
-                    url: "https://www.canaltransforma.com.br/favicon.png",
+                    url: "https://www.canaltransforma.com.br/brand/icone-app-512.png",
                   },
                 },
               }),
@@ -122,7 +122,7 @@ function Article() {
         <Link to="/editoria/$section" params={{ section: sectionSlug }} className="back-link">
           ← Voltar para {story.section}
         </Link>
-        <p className="story-section">{story.section}</p>
+        <p className={`story-section section-${story.color}`}>{story.section}</p>
         <h1>{story.title}</h1>
         <p className="article-summary">{story.summary}</p>
         {story.image ? (

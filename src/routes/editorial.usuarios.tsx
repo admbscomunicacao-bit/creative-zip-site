@@ -20,13 +20,13 @@ export const Route = createFileRoute("/editorial/usuarios")({
   }),
   head: () => ({
     meta: [
-      { title: "Usuários editoriais — Canal Transforma" },
+      { title: "Usuários editoriais | Canal Transforma" },
       {
         name: "description",
         content:
           "Painel administrativo para aprovar, bloquear e definir papéis das contas editoriais do Canal Transforma.",
       },
-      { property: "og:title", content: "Usuários editoriais — Canal Transforma" },
+      { property: "og:title", content: "Usuários editoriais | Canal Transforma" },
       {
         property: "og:description",
         content: "Administração de contas da redação do Canal Transforma.",
@@ -45,7 +45,7 @@ const statusLabel: Record<AccountStatus, string> = {
 };
 
 const formatDate = (value: string | null) =>
-  value ? new Date(value).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" }) : "—";
+  value ? new Date(value).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" }) : "Não informado";
 
 function UsersAdmin() {
   const { data: account, isLoading } = useRequireEditorialAccount({ requireEditorialAccess: true });
@@ -130,15 +130,15 @@ function UsersAdmin() {
         <dl className="user-detail-grid">
           <div>
             <dt>Nome completo</dt>
-            <dd>{selected.fullName || "—"}</dd>
+            <dd>{selected.fullName || "Não informado"}</dd>
           </div>
           <div>
             <dt>E-mail</dt>
-            <dd>{selected.email || "—"}</dd>
+            <dd>{selected.email || "Não informado"}</dd>
           </div>
           <div>
             <dt>Telefone</dt>
-            <dd>{selected.phone || "—"}</dd>
+            <dd>{selected.phone || "Não informado"}</dd>
           </div>
           <div>
             <dt>Status da conta</dt>
@@ -210,7 +210,7 @@ function UsersAdmin() {
           <ul className="audit-list">
             {userAudit.map((row) => (
               <li key={row.id}>
-                <strong>{row.action}</strong> — {formatDate(row.createdAt)}
+                <strong>{row.action}</strong>, {formatDate(row.createdAt)}
               </li>
             ))}
           </ul>

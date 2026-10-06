@@ -16,13 +16,13 @@ export const Route = createFileRoute("/editorial/confirmar-email")({
   }),
   head: () => ({
     meta: [
-      { title: "Confirme seu e-mail — Canal Transforma" },
+      { title: "Confirme seu e-mail | Canal Transforma" },
       {
         name: "description",
         content:
           "Digite o código de seis dígitos enviado para o seu e-mail e confirme sua conta editorial.",
       },
-      { property: "og:title", content: "Confirme seu e-mail — Canal Transforma" },
+      { property: "og:title", content: "Confirme seu e-mail | Canal Transforma" },
       {
         property: "og:description",
         content: "Validação de e-mail da área editorial do Canal Transforma.",

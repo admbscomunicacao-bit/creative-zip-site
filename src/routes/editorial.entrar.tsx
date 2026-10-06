@@ -9,13 +9,13 @@ export const Route = createFileRoute("/editorial/entrar")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Entrando na área editorial — Canal Transforma" },
+      { title: "Entrando na área editorial | Canal Transforma" },
       {
         name: "description",
         content:
           "Confirmação do link de acesso enviado por e-mail para a redação do Canal Transforma.",
       },
-      { property: "og:title", content: "Entrando na área editorial — Canal Transforma" },
+      { property: "og:title", content: "Entrando na área editorial | Canal Transforma" },
       {
         property: "og:description",
         content: "Validando o link de acesso enviado por e-mail.",
@@ -50,7 +50,7 @@ function EditorialMagicLinkLanding() {
       }
       if (!cancelled) {
         setError(
-          "Não foi possível validar o link de acesso. Ele pode ter expirado — entre novamente com e-mail e senha.",
+          "Não foi possível validar o link de acesso. Ele pode ter expirado. Entre novamente com e-mail e senha.",
         );
         await navigate({ to: "/editorial", replace: true });
       }
