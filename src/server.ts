@@ -3,6 +3,20 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
+// Public (non-secret) backend settings: make sure server code always finds them,
+// even when the deployed runtime did not receive the bindings.
+function ensurePublicSupabaseEnv(env: unknown) {
+  if (typeof process === "undefined" || !process.env) return;
+  const bindings = (env ?? {}) as Record<string, unknown>;
+  const pick = (k: string) => (typeof bindings[k] === "string" ? (bindings[k] as string) : undefined);
+  process.env['SUPABASE_URL'] ||=
+    pick("SUPABASE_URL") || import.meta.env['VITE_SUPABASE_URL'] || "https://vysbmffmlaiqwbnnlhud.supabase.co";
+  process.env['SUPABASE_PUBLISHABLE_KEY'] ||=
+    pick("SUPABASE_PUBLISHABLE_KEY") ||
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    "sb_publishable_w0MuIoV-V2lNaI89wUqiJw_XMcTKfts";
+}
+
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
@@ -97,6 +111,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    ensurePublicSupabaseEnv(env);
     if (["TRACE", "CONNECT"].includes(request.method)) {
       return secureResponse(request, new Response("Método não permitido.", { status: 405 }));
     }
