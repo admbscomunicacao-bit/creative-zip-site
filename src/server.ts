@@ -111,6 +111,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    ensurePublicSupabaseEnv(env);
     if (["TRACE", "CONNECT"].includes(request.method)) {
       return secureResponse(request, new Response("Método não permitido.", { status: 405 }));
     }
