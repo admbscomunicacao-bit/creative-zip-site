@@ -27,6 +27,9 @@ export function SiteFooter() {
           >
             Facebook
           </a>
+          <a href="https://www.youtube.com/@Canaltransformaa" target="_blank" rel="noreferrer">
+            YouTube
+          </a>
         </div>
         <span className="footer-copyright">© 2026 Canal Transforma</span>
       </div>
