@@ -101,7 +101,6 @@ function EditorialLogin() {
       }
       setStep("code");
       setPassword("");
-      setInfo(`Enviamos um código de seis dígitos para ${parsedEmail.data}.`);
     } catch (err) {
       setError(friendlyAuthError(err instanceof Error ? err.message : String(err)));
     } finally {
@@ -154,7 +153,7 @@ function EditorialLogin() {
       intro={
         step === "password"
           ? "Entre com sua conta individual para criar, revisar e administrar as publicações do Canal Transforma."
-          : "Verificação em duas etapas: digite o código de seis dígitos que enviamos para o seu e-mail."
+          : "Falta só confirmar que é você."
       }
     >
       {step === "password" ? (
@@ -194,12 +193,12 @@ function EditorialLogin() {
           </div>
         </form>
       ) : (
-        <form className="login-form" onSubmit={submitCode}>
-          <p className="password-hint">
-            E-mail: <strong>{email}</strong>
+        <form className="login-form code-form" onSubmit={submitCode}>
+          <p className="code-sent">
+            Enviamos um código para <strong>{email}</strong>
           </p>
           <label>
-            Código de seis dígitos
+            Código de 6 dígitos
             <input
               className="otp-input"
               type="text"
@@ -210,34 +209,37 @@ function EditorialLogin() {
               value={code}
               onChange={(ev) => setCode(ev.target.value.replace(/\D/g, ""))}
               required
+              autoFocus
             />
           </label>
           <button className="login-submit" type="submit" disabled={busy}>
             {busy ? "Verificando..." : "Confirmar código"} <b>→</b>
           </button>
-          <button
-            type="button"
-            className="editorial-secondary"
-            onClick={resendCode}
-            disabled={busy}
-          >
-            Reenviar código
-          </button>
           {info && <p className="login-message">{info}</p>}
           {error && <p className="login-message login-error">{error}</p>}
-          <button
-            type="button"
-            className="editorial-link-button"
-            onClick={() => {
-              void supabase.auth.signOut();
-              setStep("password");
-              setCode("");
-              setError("");
-              setInfo("");
-            }}
-          >
-            ← Usar outro e-mail
-          </button>
+          <div className="code-actions">
+            <button
+              type="button"
+              className="editorial-link-button"
+              onClick={resendCode}
+              disabled={busy}
+            >
+              Reenviar código
+            </button>
+            <button
+              type="button"
+              className="editorial-link-button"
+              onClick={() => {
+                void supabase.auth.signOut();
+                setStep("password");
+                setCode("");
+                setError("");
+                setInfo("");
+              }}
+            >
+              Usar outro e-mail
+            </button>
+          </div>
         </form>
       )}
     </EditorialShell>
