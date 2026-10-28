@@ -3,10 +3,21 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { LeadStory, MiniStory, NewsCard } from "@/components/StoryCard";
-import { sections, stories } from "@/data/stories";
+import { VideoHub } from "@/components/VideoHub";
+import { sections } from "@/data/stories";
 import { brand } from "@/lib/brand";
+import { listPublishedStories } from "@/lib/public-articles.functions";
+import { getChannelVideos } from "@/lib/site.functions";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const [{ stories }, videos] = await Promise.all([
+      listPublishedStories({ data: { limit: 20 } }),
+      getChannelVideos(),
+    ]);
+    return { stories, videos };
+  },
+  staleTime: 30_000,
   head: () => ({
     meta: [
       { title: "Canal Transforma | Jornalismo local de Catanduva" },
@@ -37,7 +48,10 @@ const colorClass: Record<string, string> = {
 };
 
 function Home() {
-  const featured = stories.filter((s) => s.featured);
+  const { stories, videos } = Route.useLoaderData();
+  // Destaque: as quatro reportagens mais recentes com capa.
+  const withCover = stories.filter((s) => s.image);
+  const featured = (withCover.length ? withCover : stories).slice(0, 4);
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -45,11 +59,45 @@ function Home() {
     return () => clearInterval(id);
   }, [featured.length, index]);
 
-  const active = featured[index] ?? featured[0]!;
+  const active = featured[index] ?? featured[0];
   const daily = stories.slice(0, 4);
-  const lead = daily[0]!;
+  const lead = daily[0];
   const secondary = daily.slice(1);
   const recent = stories.slice(4, 16);
+
+  if (!active || !lead) {
+    return (
+      <>
+        <SiteHeader />
+        <div className="home-shell">
+          <h1 className="sr-only">Canal Transforma: jornalismo local de Catanduva e região</h1>
+          <section className="home-empty">
+            <p className="eyebrow">Em breve</p>
+            <h2>As primeiras reportagens estão a caminho.</h2>
+            <p>
+              A redação do Canal Transforma está apurando as notícias de Catanduva. Enquanto isso,
+              acompanhe as lives e siga o canal nas redes.
+            </p>
+            <div className="section-links">
+              {sections.map((s) => (
+                <Link
+                  key={s.slug}
+                  to="/editoria/$section"
+                  params={{ section: s.slug }}
+                  className={`section-link ${colorClass[s.slug]}`}
+                >
+                  {s.name}
+                  <b>→</b>
+                </Link>
+              ))}
+            </div>
+          </section>
+          <VideoHub videos={videos} />
+        </div>
+        <SiteFooter />
+      </>
+    );
+  }
 
   const go = (i: number) => setIndex((i + featured.length) % featured.length);
 
@@ -66,7 +114,7 @@ function Home() {
             {featured.map((s, i) => (
               <div key={s.slug} className={`carousel-photo ${i === index ? "is-active" : ""}`}>
                 <img
-                  src={s.image.replace(/([?&])w=\d+/, "$1w=1200")}
+                  src={(s.image || brand.ogImage).replace(/([?&])w=\d+/, "$1w=1200")}
                   alt=""
                   loading={i === 0 ? "eager" : "lazy"}
                   fetchPriority={i === 0 ? "high" : undefined}
@@ -148,25 +196,31 @@ function Home() {
           </div>
         </section>
 
-        <section className="section-header">
-          <div>
-            <h2>O que também aconteceu</h2>
-          </div>
-          <div>
-            <div className="section-header-actions">
-              <span>{recent.length} reportagens recentes</span>
-              <Link to="/noticias-recentes" className="section-more">
-                Ver todas <b>→</b>
-              </Link>
-            </div>
-          </div>
-        </section>
+        <VideoHub videos={videos} />
 
-        <section className="news-grid">
-          {recent.map((s) => (
-            <NewsCard key={s.slug} story={s} />
-          ))}
-        </section>
+        {recent.length ? (
+          <section className="section-header">
+            <div>
+              <h2>O que também aconteceu</h2>
+            </div>
+            <div>
+              <div className="section-header-actions">
+                <span>{recent.length} reportagens recentes</span>
+                <Link to="/noticias-recentes" className="section-more">
+                  Ver todas <b>→</b>
+                </Link>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {recent.length ? (
+          <section className="news-grid">
+            {recent.map((s) => (
+              <NewsCard key={s.slug} story={s} />
+            ))}
+          </section>
+        ) : null}
 
         <section className="section-header category-header">
           <div>

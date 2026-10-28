@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { brand } from "@/lib/brand";
 import { sections } from "@/data/stories";
+import { HeaderInfoBar } from "@/components/HeaderInfoBar";
+import { LiveBar } from "@/components/LiveBar";
+import { SocialRow } from "@/components/social";
 
 const navClass: Record<string, string> = {
   cidade: "nav-cidade",
@@ -23,79 +26,89 @@ export function SiteHeader() {
   };
 
   return (
-    <div className="site-chrome">
-      <header className="site-header">
-        <Link to="/" className="brand" aria-label="Canal Transforma, página inicial">
-          <img src={brand.logoOnBlue} alt="Canal Transforma" width={720} height={186} />
-        </Link>
-        <div className="header-actions">
-          <form className="header-search" role="search" onSubmit={submit}>
-            <label className="sr-only" htmlFor="site-search">
-              Pesquisar notícias
-            </label>
-            <Search className="search-icon" size={17} strokeWidth={2.25} aria-hidden="true" />
-            <input
-              id="site-search"
-              type="search"
-              placeholder="Pesquisar"
-              autoComplete="off"
-              name="q"
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
-            />
-          </form>
-          <button
-            type="button"
-            className="menu-toggle"
-            aria-label="Abrir menu"
-            aria-expanded={open}
-            aria-controls="site-menu"
-            onClick={() => setOpen(true)}
-          >
-            <i />
-            <i />
-            <i />
-          </button>
-        </div>
-      </header>
-      <div className="topline">
-        <span className="topline-star" aria-hidden="true" />
-        Catanduva, SP. Jornalismo local que apura antes de publicar.
-      </div>
-      <div className={`menu-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
-        <button
-          type="button"
-          className="menu-backdrop"
-          aria-label="Fechar menu"
-          tabIndex={-1}
-          onClick={() => setOpen(false)}
-        />
-        <aside className="menu-panel" id="site-menu" aria-label="Menu principal">
-          <div className="menu-panel-head">
-            <span>Menu</span>
-            <button type="button" aria-label="Fechar menu" onClick={() => setOpen(false)}>
-              ×
+    <>
+      <HeaderInfoBar />
+      <div className="site-chrome">
+        <header className="site-header">
+          <Link to="/" className="brand" aria-label="Canal Transforma, página inicial">
+            <img src={brand.logoOnBlue} alt="Canal Transforma" width={720} height={186} />
+          </Link>
+          <div className="header-actions">
+            <form className="header-search" role="search" onSubmit={submit}>
+              <label className="sr-only" htmlFor="site-search">
+                Pesquisar notícias
+              </label>
+              <Search className="search-icon" size={17} strokeWidth={2.25} aria-hidden="true" />
+              <input
+                id="site-search"
+                type="search"
+                placeholder="Pesquisar"
+                autoComplete="off"
+                name="q"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+              />
+            </form>
+            <button
+              type="button"
+              className="menu-toggle"
+              aria-label="Abrir menu"
+              aria-expanded={open}
+              aria-controls="site-menu"
+              onClick={() => setOpen(true)}
+            >
+              <i />
+              <i />
+              <i />
             </button>
           </div>
-          <nav aria-label="Editorias">
-            {sections.map((s) => (
-              <Link
-                key={s.slug}
-                to="/editoria/$section"
-                params={{ section: s.slug }}
-                className={`menu-link ${navClass[s.slug]}`}
-                onClick={() => setOpen(false)}
-              >
-                {s.name}
+        </header>
+        <LiveBar />
+        <div className={`menu-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
+          <button
+            type="button"
+            className="menu-backdrop"
+            aria-label="Fechar menu"
+            tabIndex={-1}
+            onClick={() => setOpen(false)}
+          />
+          <aside className="menu-panel" id="site-menu" aria-label="Menu principal">
+            <div className="menu-panel-head">
+              <span>Menu</span>
+              <button type="button" aria-label="Fechar menu" onClick={() => setOpen(false)}>
+                ×
+              </button>
+            </div>
+            <nav aria-label="Editorias">
+              {sections.map((s) => (
+                <Link
+                  key={s.slug}
+                  to="/editoria/$section"
+                  params={{ section: s.slug }}
+                  className={`menu-link ${navClass[s.slug]}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {s.name}
+                  <b>→</b>
+                </Link>
+              ))}
+            </nav>
+            <nav aria-label="Mais do Canal" className="menu-extra">
+              <Link to="/videos" className="menu-link" onClick={() => setOpen(false)}>
+                Vídeos e lives
                 <b>→</b>
               </Link>
-            ))}
-          </nav>
-          <Link to="/editorial" className="menu-editorial" onClick={() => setOpen(false)}>
-            Entrar na área editorial <b>→</b>
-          </Link>
-        </aside>
+            </nav>
+            <div className="menu-social">
+              <span>Siga o Canal</span>
+              <SocialRow className="menu-social-row" size={20} />
+            </div>
+            <Link to="/editorial" className="menu-editorial" onClick={() => setOpen(false)}>
+              Entrar na área editorial <b>→</b>
+            </Link>
+          </aside>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

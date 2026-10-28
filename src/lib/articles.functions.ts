@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { sanitizeArticleHtml } from "@/lib/article-html";
+import { youtubeVideoId } from "@/lib/youtube";
 import { z } from "zod";
 
 export type ArticleStatus = "draft" | "published";
@@ -15,6 +16,7 @@ export type Article = {
   status: ArticleStatus;
   bodyHtml: string;
   coverUrl: string | null;
+  videoUrl: string | null;
   authorId: string;
   authorName: string;
   publishedAt: string | null;
@@ -32,6 +34,7 @@ type Row = {
   status: ArticleStatus;
   body_html: string;
   cover_url: string | null;
+  video_url?: string | null;
   author_id: string;
   author_name: string;
   published_at: string | null;
@@ -49,6 +52,7 @@ const toArticle = (row: Row): Article => ({
   status: row.status,
   bodyHtml: row.body_html ?? "",
   coverUrl: row.cover_url,
+  videoUrl: row.video_url ?? null,
   authorId: row.author_id,
   authorName: row.author_name,
   publishedAt: row.published_at,
@@ -57,12 +61,17 @@ const toArticle = (row: Row): Article => ({
 });
 
 const SELECT =
-  "id,slug,title,summary,section,color,status,body_html,cover_url,author_id,author_name,published_at,created_at,updated_at";
+  "id,slug,title,summary,section,color,status,body_html,cover_url,video_url,author_id,author_name,published_at,created_at,updated_at";
+
+/** Migração do vídeo ainda não aplicada no banco: a redação segue funcionando sem o campo. */
+const missingVideoColumn = (error: { code?: string; message?: string } | null) =>
+  Boolean(error && (error.code === "42703" || /video_url/.test(error.message ?? "")));
+const LEGACY_SELECT = SELECT.replace(",video_url", "");
 
 const sectionColors: Record<string, string> = {
   Cidade: "blue",
-  "Política": "red",
-  "Serviços": "green",
+  Política: "red",
+  Serviços: "green",
   Esportes: "yellow",
 };
 
@@ -78,12 +87,12 @@ export const slugify = (value: string) =>
 export const listEditorialArticles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("articles")
-      .select(SELECT)
-      .order("updated_at", { ascending: false });
+    const run = (select: string) =>
+      context.supabase.from("articles").select(select).order("updated_at", { ascending: false });
+    let { data, error } = await run(SELECT);
+    if (missingVideoColumn(error)) ({ data, error } = await run(LEGACY_SELECT));
     if (error) throw new Error(error.message);
-    return ((data ?? []) as Row[]).map(toArticle);
+    return ((data ?? []) as unknown as Row[]).map(toArticle);
   });
 
 const articleInput = z.object({
@@ -94,6 +103,13 @@ const articleInput = z.object({
   status: z.enum(["draft", "published"]),
   bodyHtml: z.string().max(400000),
   coverUrl: z.string().trim().max(2000).nullable().optional(),
+  videoUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => !v || youtubeVideoId(v), "Cole um link de vídeo do YouTube válido.")
+    .nullable()
+    .optional(),
   authorName: z.string().trim().max(160).optional(),
 });
 
@@ -118,18 +134,31 @@ export const saveArticle = createServerFn({ method: "POST" })
       body_html: sanitizeArticleHtml(data.bodyHtml),
       cover_url: data.coverUrl ?? null,
       author_name: data.authorName ?? "",
+      ...(data.videoUrl !== undefined ? { video_url: data.videoUrl || null } : {}),
     };
+    if (payload.video_url) {
+      const probe = await supabase.from("articles").select("video_url").limit(1);
+      if (missingVideoColumn(probe.error)) {
+        throw new Error(
+          "O campo de vídeo ainda não foi ativado no banco. Salve sem o vídeo ou peça para aplicar a migração.",
+        );
+      }
+    } else if ("video_url" in payload) {
+      const probe = await supabase.from("articles").select("video_url").limit(1);
+      if (missingVideoColumn(probe.error)) delete (payload as { video_url?: unknown }).video_url;
+    }
+    const select = "video_url" in payload ? SELECT : LEGACY_SELECT;
 
     if (data.id) {
       const { data: updated, error } = await supabase
         .from("articles")
         .update(payload)
         .eq("id", data.id)
-        .select(SELECT)
+        .select(select)
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!updated) throw new Error("Reportagem não encontrada ou sem permissão de edição.");
-      return toArticle(updated as Row);
+      return toArticle(updated as unknown as Row);
     }
 
     const base = slugify(data.title) || "reportagem";
@@ -147,10 +176,10 @@ export const saveArticle = createServerFn({ method: "POST" })
     const { data: inserted, error } = await supabase
       .from("articles")
       .insert({ ...payload, slug, author_id: userId })
-      .select(SELECT)
+      .select(select)
       .single();
     if (error) throw new Error(error.message);
-    return toArticle(inserted as Row);
+    return toArticle(inserted as unknown as Row);
   });
 
 export const deleteArticle = createServerFn({ method: "POST" })

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
@@ -87,6 +88,119 @@ export const ensureEditorialProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+type RpcClient = {
+  rpc: (fn: "is_mfa_session") => PromiseLike<{ data: unknown; error: unknown }>;
+};
+
+/** Sessão aberta com senha E confirmada pelo código do e-mail (regra no banco: is_mfa_session). */
+async function sessionIsVerified(supabase: RpcClient) {
+  const { data, error } = await supabase.rpc("is_mfa_session");
+  return !error && data === true;
+}
+
+/* ── Login em duas etapas: senha + código do e-mail na mesma sessão ── */
+
+const CODE_TTL_HOURS = 24;
+const MAX_CODE_FAILURES = 5;
+
+type AuthClaims = Record<string, unknown>;
+
+const openedWithPassword = (claims: AuthClaims) =>
+  Array.isArray(claims["amr"]) &&
+  claims["amr"].some(
+    (entry) =>
+      typeof entry === "object" &&
+      entry !== null &&
+      (entry as Record<string, unknown>)["method"] === "password",
+  );
+
+/** Cliente descartável: envia e confere o código sem mexer na sessão da pessoa. */
+function throwawayClient() {
+  return createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_PUBLISHABLE_KEY"]!, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
+function requirePasswordSession(claims: AuthClaims) {
+  const email = typeof claims["email"] === "string" ? (claims["email"] as string) : "";
+  if (!openedWithPassword(claims) || !email) {
+    throw new Error("Entre com seu e-mail e senha para receber o código.");
+  }
+  return email;
+}
+
+// Etapa 2a: com a senha já conferida (sessão aberta por senha), envia o código ao e-mail da conta.
+export const sendEditorialLoginCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const email = requirePasswordSession(context.claims);
+    const { error } = await throwawayClient().auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, email };
+  });
+
+// Etapa 2b: confere o código e marca ESTA sessão (a da senha) como verificada.
+export const verifyEditorialLoginCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { code: string }) =>
+    z
+      .object({
+        code: z
+          .string()
+          .trim()
+          .regex(/^\d{6}$/, "O código tem seis dígitos."),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const email = requirePasswordSession(context.claims);
+    const sessionId = context.claims["session_id"];
+    if (typeof sessionId !== "string") throw new Error("Sessão inválida. Entre novamente.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const since = new Date(Date.now() - 15 * 60_000).toISOString();
+    const { count } = await supabaseAdmin
+      .from("audit_log")
+      .select("id", { count: "exact", head: true })
+      .eq("actor_id", context.userId)
+      .eq("action", "login_code_failed")
+      .gte("created_at", since);
+    if ((count ?? 0) >= MAX_CODE_FAILURES) {
+      throw new Error("Muitas tentativas com código errado. Aguarde 15 minutos e entre de novo.");
+    }
+
+    const checker = throwawayClient();
+    const { error } = await checker.auth.verifyOtp({ email, token: data.code, type: "email" });
+    if (error) {
+      await supabaseAdmin.from("audit_log").insert({
+        actor_id: context.userId,
+        target_user_id: context.userId,
+        action: "login_code_failed",
+        detail: {},
+      });
+      throw new Error(error.message);
+    }
+    // A conferência abre uma sessão extra só por código: encerramos na hora.
+    await checker.auth.signOut({ scope: "local" }).catch(() => undefined);
+
+    const { error: saveError } = await supabaseAdmin.from("editorial_verified_sessions").upsert({
+      session_id: sessionId,
+      user_id: context.userId,
+      expires_at: new Date(Date.now() + CODE_TTL_HOURS * 3_600_000).toISOString(),
+    });
+    if (saveError) throw new Error(saveError.message);
+    await supabaseAdmin.from("audit_log").insert({
+      actor_id: context.userId,
+      target_user_id: context.userId,
+      action: "login_success",
+      detail: {},
+    });
+    return { ok: true };
+  });
+
 export const getMyEditorialAccount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<EditorialAccount | null> => {
@@ -100,7 +214,10 @@ export const getMyEditorialAccount = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!profile) return null;
 
-    const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
     const roles = (roleRows ?? []).map((r) => r.role as AppRole);
 
     // Generate a signed URL for the avatar if a storage path is stored.
@@ -123,21 +240,22 @@ export const getMyEditorialAccount = createServerFn({ method: "GET" })
       mfaEnrolledAt: profile.mfa_enrolled_at,
       roles,
       isAdmin: roles.includes("admin"),
-      mfaVerified: claims["aal"] === "aal2",
+      mfaVerified: await sessionIsVerified(supabase),
     };
   });
 
 export const updateMyEditorialProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { fullName: string; phone?: string; bio?: string; avatarPath?: string }) =>
-    z
-      .object({
-        fullName: z.string().trim().min(3, "Informe seu nome completo").max(120),
-        phone: z.string().trim().max(40).optional(),
-        bio: z.string().trim().max(1000).optional(),
-        avatarPath: z.string().trim().max(500).optional().or(z.literal("")),
-      })
-      .parse(input),
+  .inputValidator(
+    (input: { fullName: string; phone?: string; bio?: string; avatarPath?: string }) =>
+      z
+        .object({
+          fullName: z.string().trim().min(3, "Informe seu nome completo").max(120),
+          phone: z.string().trim().max(40).optional(),
+          bio: z.string().trim().max(1000).optional(),
+          avatarPath: z.string().trim().max(500).optional().or(z.literal("")),
+        })
+        .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -149,7 +267,10 @@ export const updateMyEditorialProfile = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
     if (current?.avatar_url && current.avatar_url !== data.avatarPath) {
-      await supabase.storage.from("avatars").remove([current.avatar_url]).catch(() => undefined);
+      await supabase.storage
+        .from("avatars")
+        .remove([current.avatar_url])
+        .catch(() => undefined);
     }
 
     const { error } = await supabase
@@ -182,22 +303,11 @@ export const markMfaEnrolled = createServerFn({ method: "POST" })
   });
 
 async function assertApprovedAdmin(context: {
-  supabase: { rpc: unknown };
+  supabase: RpcClient;
   userId: string;
   claims: Record<string, unknown>;
 }) {
-  const amr = Array.isArray(context.claims["amr"]) ? context.claims["amr"] : [];
-  const secondFactorVerified =
-    context.claims["aal"] === "aal2" ||
-    amr.some(
-      (entry) =>
-        typeof entry === "object" &&
-        entry !== null &&
-        ["otp", "email", "email_otp", "totp", "mfa/totp"].includes(
-          String((entry as Record<string, unknown>)["method"] ?? ""),
-        ),
-    );
-  if (!secondFactorVerified) {
+  if (!(await sessionIsVerified(context.supabase))) {
     throw new Error("Confirme o código de verificação antes de acessar a administração.");
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

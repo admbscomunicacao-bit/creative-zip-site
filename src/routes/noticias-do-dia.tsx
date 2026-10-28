@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
-import { stories } from "@/data/stories";
+import { listPublishedStories } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/noticias-do-dia")({
+  loader: () => listPublishedStories({ data: { limit: 8 } }),
+  staleTime: 30_000,
   head: () => ({
     meta: [
       { title: "Notícias do dia | Canal Transforma" },
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/noticias-do-dia")({
 });
 
 function DailyNews() {
-  const list = stories.slice(0, 8);
+  const { stories: list } = Route.useLoaderData();
   return (
     <>
       <SiteHeader />
@@ -38,6 +40,9 @@ function DailyNews() {
         <p className="listing-intro">
           As reportagens que a redação destaca hoje para quem mora em Catanduva.
         </p>
+        {list.length === 0 ? (
+          <p className="listing-intro">Ainda não há reportagens publicadas. Volte em breve.</p>
+        ) : null}
         <div className="listing-grid">
           {list.map((s) => (
             <ListingCard key={s.slug} story={s} />

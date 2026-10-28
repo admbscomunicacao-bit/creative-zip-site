@@ -73,6 +73,8 @@ export function useEditorialAccount() {
 export function nextEditorialStep(account: EditorialAccount | null): string {
   if (!account) return "/editorial";
   if (account.status !== "approved") return "/editorial/aguardando";
+  // Sessão sem a confirmação do código (ou aberta só por link/código): volta ao login.
+  if (!account.mfaVerified) return "/editorial";
   return "/editorial/redacao";
 }
 

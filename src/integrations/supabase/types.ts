@@ -30,6 +30,7 @@ export type Database = {
           summary: string
           title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           author_id: string
@@ -46,6 +47,7 @@ export type Database = {
           summary?: string
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           author_id?: string
@@ -62,6 +64,7 @@ export type Database = {
           summary?: string
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -89,6 +92,27 @@ export type Database = {
           detail?: Json
           id?: string
           target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      editorial_verified_sessions: {
+        Row: {
+          expires_at: string
+          session_id: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          expires_at: string
+          session_id: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          expires_at?: string
+          session_id?: string
+          user_id?: string
+          verified_at?: string
         }
         Relationships: []
       }
@@ -131,6 +155,42 @@ export type Database = {
           status?: Database["public"]["Enums"]["account_status"]
           terms_accepted_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          adsense_client: string | null
+          adsense_enabled: boolean
+          id: number
+          live_active: boolean
+          live_title: string
+          live_url: string | null
+          updated_at: string
+          updated_by: string | null
+          youtube_channel_id: string
+        }
+        Insert: {
+          adsense_client?: string | null
+          adsense_enabled?: boolean
+          id?: number
+          live_active?: boolean
+          live_title?: string
+          live_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          youtube_channel_id?: string
+        }
+        Update: {
+          adsense_client?: string | null
+          adsense_enabled?: boolean
+          id?: number
+          live_active?: boolean
+          live_title?: string
+          live_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          youtube_channel_id?: string
         }
         Relationships: []
       }

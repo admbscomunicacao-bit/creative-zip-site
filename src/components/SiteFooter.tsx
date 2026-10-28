@@ -1,4 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { brand } from "@/lib/brand";
+import { socialLinks, SocialIcon } from "@/components/social";
 
 export function SiteFooter() {
   return (
@@ -14,24 +16,17 @@ export function SiteFooter() {
           <a href="mailto:canaltransformaa@gmail.com">canaltransformaa@gmail.com</a>
         </div>
         <div className="footer-social" aria-label="Redes sociais">
-          <a href="https://www.tiktok.com/@canaltransforma" target="_blank" rel="noreferrer">
-            TikTok
-          </a>
-          <a href="https://www.instagram.com/canaltransformaa/" target="_blank" rel="noreferrer">
-            Instagram
-          </a>
-          <a
-            href="https://www.facebook.com/profile.php?id=61593190852593"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Facebook
-          </a>
-          <a href="https://www.youtube.com/@Canaltransformaa" target="_blank" rel="noreferrer">
-            YouTube
-          </a>
+          {socialLinks.map((s) => (
+            <a key={s.name} href={s.href} target="_blank" rel="noreferrer">
+              <SocialIcon path={s.path} size={16} />
+              {s.name}
+            </a>
+          ))}
         </div>
-        <span className="footer-copyright">© 2026 Canal Transforma</span>
+        <span className="footer-copyright">
+          © 2026 Canal Transforma · <Link to="/videos">Vídeos e lives</Link> ·{" "}
+          <Link to="/privacidade">Privacidade</Link>
+        </span>
       </div>
     </footer>
   );

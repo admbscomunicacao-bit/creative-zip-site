@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
-import { sections, stories } from "@/data/stories";
+import { sections } from "@/data/stories";
+import { listPublishedStories } from "@/lib/public-articles.functions";
 
 type Search = { q?: string | undefined };
 
@@ -10,6 +11,9 @@ export const Route = createFileRoute("/busca")({
   validateSearch: (search: Record<string, unknown>): Search => ({
     q: typeof search["q"] === "string" ? search["q"] : undefined,
   }),
+  loaderDeps: ({ search }) => ({ q: (search.q ?? "").trim().slice(0, 120) }),
+  loader: async ({ deps }) =>
+    deps.q ? (await listPublishedStories({ data: { q: deps.q, limit: 48 } })).stories : [],
 
   head: () => ({
     meta: [
@@ -33,9 +37,7 @@ export const Route = createFileRoute("/busca")({
 function SearchPage() {
   const { q } = Route.useSearch();
   const term = (q ?? "").trim().toLowerCase();
-  const results = term
-    ? stories.filter((s) => `${s.title} ${s.summary} ${s.section}`.toLowerCase().includes(term))
-    : [];
+  const results = Route.useLoaderData();
 
   return (
     <>

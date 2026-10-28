@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdsDottxtRouteImport } from './routes/ads[.]txt'
 import { Route as BuscaRouteImport } from './routes/busca'
 import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as VideosRouteImport } from './routes/videos'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
 import { Route as EditorialIndexRouteImport } from './routes/editorial.index'
 import { Route as EditorialAguardandoRouteImport } from './routes/editorial.aguardando'
@@ -36,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdsDottxtRoute = AdsDottxtRouteImport.update({
+  id: '/ads.txt',
+  path: '/ads.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BuscaRoute = BuscaRouteImport.update({
   id: '/busca',
   path: '/busca',
@@ -51,9 +59,19 @@ const NoticiasRecentesRoute = NoticiasRecentesRouteImport.update({
   path: '/noticias-recentes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideosRoute = VideosRouteImport.update({
+  id: '/videos',
+  path: '/videos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditoriaSectionRoute = EditoriaSectionRouteImport.update({
@@ -139,10 +157,13 @@ const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/videos': typeof VideosRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -162,10 +183,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/videos': typeof VideosRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -186,10 +210,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/busca': typeof BuscaRoute
   '/noticias-do-dia': typeof NoticiasDoDiaRoute
   '/noticias-recentes': typeof NoticiasRecentesRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/videos': typeof VideosRoute
   '/editoria/$section': typeof EditoriaSectionRoute
   '/editorial/aguardando': typeof EditorialAguardandoRoute
   '/editorial/confirmar-email': typeof EditorialConfirmarEmailRoute
@@ -211,10 +238,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ads.txt'
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/privacidade'
     | '/sitemap.xml'
+    | '/videos'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -234,10 +264,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ads.txt'
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/privacidade'
     | '/sitemap.xml'
+    | '/videos'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -257,10 +290,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ads.txt'
     | '/busca'
     | '/noticias-do-dia'
     | '/noticias-recentes'
+    | '/privacidade'
     | '/sitemap.xml'
+    | '/videos'
     | '/editoria/$section'
     | '/editorial/aguardando'
     | '/editorial/confirmar-email'
@@ -281,10 +317,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdsDottxtRoute: typeof AdsDottxtRoute
   BuscaRoute: typeof BuscaRoute
   NoticiasDoDiaRoute: typeof NoticiasDoDiaRoute
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VideosRoute: typeof VideosRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
   EditorialAguardandoRoute: typeof EditorialAguardandoRoute
   EditorialConfirmarEmailRoute: typeof EditorialConfirmarEmailRoute
@@ -312,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ads.txt': {
+      id: '/ads.txt'
+      path: '/ads.txt'
+      fullPath: '/ads.txt'
+      preLoaderRoute: typeof AdsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/busca': {
       id: '/busca'
       path: '/busca'
@@ -333,11 +379,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NoticiasRecentesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videos': {
+      id: '/videos'
+      path: '/videos'
+      fullPath: '/videos'
+      preLoaderRoute: typeof VideosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/editoria/$section': {
@@ -457,10 +517,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdsDottxtRoute: AdsDottxtRoute,
   BuscaRoute: BuscaRoute,
   NoticiasDoDiaRoute: NoticiasDoDiaRoute,
   NoticiasRecentesRoute: NoticiasRecentesRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VideosRoute: VideosRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,
   EditorialAguardandoRoute: EditorialAguardandoRoute,
   EditorialConfirmarEmailRoute: EditorialConfirmarEmailRoute,

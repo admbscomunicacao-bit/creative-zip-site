@@ -23,6 +23,17 @@ type ServerEntry = {
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
+const ADS_HOSTS = [
+  "https://pagead2.googlesyndication.com",
+  "https://*.googlesyndication.com",
+  "https://*.doubleclick.net",
+  "https://*.google.com",
+  "https://*.gstatic.com",
+  "https://*.adtrafficquality.google",
+  "https://adservice.google.com",
+  "https://www.googletagservices.com",
+].join(" ");
+
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
     "default-src 'self'",
@@ -30,12 +41,16 @@ const SECURITY_HEADERS: Record<string, string> = {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    // Google AdSense: script, anúncios em iframe e medição.
+    `script-src 'self' 'unsafe-inline' ${ADS_HOSTS}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co",
+    // Miniaturas do YouTube e criativos dos anúncios vêm de vários domínios do Google.
+    "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https:",
     "media-src 'self' https://*.supabase.co",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co ${ADS_HOSTS}`,
+    // Player do YouTube, mapa de trânsito do Waze e anúncios.
+    `frame-src https://www.youtube-nocookie.com https://www.youtube.com https://embed.waze.com ${ADS_HOSTS}`,
     "upgrade-insecure-requests",
     "block-all-mixed-content",
   ].join("; "),

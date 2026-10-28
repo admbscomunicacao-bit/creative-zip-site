@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
-import { stories } from "@/data/stories";
+import { listPublishedStories } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/noticias-recentes")({
+  loader: () => listPublishedStories({ data: { limit: 60 } }),
+  staleTime: 30_000,
   head: () => ({
     meta: [
       { title: "Notícias recentes | Canal Transforma" },
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/noticias-recentes")({
 });
 
 function RecentNews() {
+  const { stories } = Route.useLoaderData();
   return (
     <>
       <SiteHeader />
@@ -34,7 +37,13 @@ function RecentNews() {
         </Link>
         <p className="eyebrow">Mais recentes</p>
         <h1>O que também aconteceu</h1>
-        <p className="listing-intro">{stories.length} reportagens publicadas no portal.</p>
+        <p className="listing-intro">
+          {stories.length === 0
+            ? "Ainda não há reportagens publicadas. Volte em breve."
+            : stories.length === 1
+              ? "1 reportagem publicada no portal."
+              : `${stories.length} reportagens publicadas no portal.`}
+        </p>
         <div className="listing-grid">
           {stories.map((s) => (
             <ListingCard key={s.slug} story={s} />

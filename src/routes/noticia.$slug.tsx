@@ -2,24 +2,33 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsCard } from "@/components/StoryCard";
-import { sections, stories, type Section, type SectionColor } from "@/data/stories";
-import { getPublishedArticle } from "@/lib/public-articles.functions";
+import { ShareBar } from "@/components/ShareBar";
+import { YouTubePlayer } from "@/components/YouTubePlayer";
+import { sections, type Section, type SectionColor } from "@/data/stories";
+import {
+  formatStoryDate,
+  getPublishedArticle,
+  listPublishedStories,
+} from "@/lib/public-articles.functions";
+import { youtubeThumb, youtubeVideoId } from "@/lib/youtube";
 
 export const Route = createFileRoute("/noticia/$slug")({
   loader: async ({ params }) => {
     const article = await getPublishedArticle({ data: { slug: params.slug } });
-    if (!article) {
-      const story = stories.find((s) => s.slug === params.slug);
-      if (story)
-        return {
-          story,
-          bodyHtml: null as string | null,
-          author: "Canal Transforma",
-          publishedAtIso: null as string | null,
-        };
-      throw notFound();
-    }
+    if (!article) throw notFound();
+    const { stories: related } = await listPublishedStories({
+      data: { section: article.section as Section, exclude: article.slug, limit: 3 },
+    });
+    const videoId = youtubeVideoId(article.videoUrl);
+    const updatedLater =
+      article.updatedAt &&
+      article.publishedAt &&
+      new Date(article.updatedAt).getTime() - new Date(article.publishedAt).getTime() > 10 * 60_000;
     return {
+      related,
+      videoId,
+      updatedAtIso: updatedLater ? new Date(article.updatedAt!).toISOString() : null,
+      updatedLabel: updatedLater ? formatStoryDate(article.updatedAt) : "",
       story: {
         slug: article.slug,
         section: article.section as Section,
@@ -29,10 +38,12 @@ export const Route = createFileRoute("/noticia/$slug")({
           ? new Date(article.publishedAt).toLocaleString("pt-BR", {
               dateStyle: "long",
               timeStyle: "short",
+              timeZone: "America/Sao_Paulo",
             })
           : "",
         color: article.color as SectionColor,
-        image: article.coverUrl ?? "",
+        // Sem capa, a miniatura do vídeo vira a imagem de compartilhamento.
+        image: article.coverUrl ?? (videoId ? youtubeThumb(videoId) : ""),
       },
       bodyHtml: article.bodyHtml,
       author: article.authorName || "Canal Transforma",
@@ -85,7 +96,7 @@ export const Route = createFileRoute("/noticia/$slug")({
                 ...(loaderData?.publishedAtIso
                   ? {
                       datePublished: loaderData.publishedAtIso,
-                      dateModified: loaderData.publishedAtIso,
+                      dateModified: loaderData.updatedAtIso ?? loaderData.publishedAtIso,
                     }
                   : {}),
                 author: {
@@ -110,10 +121,9 @@ export const Route = createFileRoute("/noticia/$slug")({
 });
 
 function Article() {
-  const { story, bodyHtml, author } = Route.useLoaderData();
-  const sectionSlug =
-    sections.find((s) => s.name === story.section)?.slug ?? "cidade";
-  const related = stories.filter((s) => s.section === story.section && s.slug !== story.slug).slice(0, 3);
+  const { story, bodyHtml, author, related, videoId, updatedLabel } = Route.useLoaderData();
+  const sectionSlug = sections.find((s) => s.name === story.section)?.slug ?? "cidade";
+  const url = `https://www.canaltransforma.com.br/noticia/${story.slug}`;
 
   return (
     <>
@@ -125,7 +135,11 @@ function Article() {
         <p className={`story-section section-${story.color}`}>{story.section}</p>
         <h1>{story.title}</h1>
         <p className="article-summary">{story.summary}</p>
-        {story.image ? (
+        {videoId ? (
+          <div className="article-video">
+            <YouTubePlayer id={videoId} title={story.title} />
+          </div>
+        ) : story.image ? (
           <div className={`article-art ${story.color}`}>
             <img src={story.image} alt={`Capa de ${story.title}`} />
           </div>
@@ -134,32 +148,19 @@ function Article() {
           <span>{author}</span>
           <div>
             <time>Publicado em {story.date}</time>
-            <time>Atualizado em {story.date}</time>
+            {updatedLabel ? <time>Atualizado em {updatedLabel}</time> : null}
           </div>
         </div>
+        <ShareBar url={url} title={story.title} />
         <div className="article-body">
-          {bodyHtml ? (
-            <div
-              className="story-text-block article-rich"
-              dangerouslySetInnerHTML={{ __html: bodyHtml }}
-            />
-          ) : (
-            <>
-              <div className="story-text-block">
-                <p>
-                  Esta é uma reportagem demonstrativa criada para apresentar a leitura dentro do
-                  portal. Na versão publicada, este espaço receberá a apuração da repórter
-                  responsável, com fontes identificadas, contexto e atualizações quando necessárias.
-                </p>
-              </div>
-              <div className="story-text-block">
-                <p>
-                  O Canal Transforma acompanha o dia a dia de Catanduva com atenção às informações
-                  úteis: serviços, decisões públicas, cultura e esporte, sempre com linguagem clara.
-                </p>
-              </div>
-            </>
-          )}
+          <div
+            className="story-text-block article-rich"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
+        </div>
+        <div className="article-share-end">
+          <p>Achou útil? Mande para quem também precisa saber.</p>
+          <ShareBar url={url} title={story.title} />
         </div>
       </article>
       {related.length > 0 && (

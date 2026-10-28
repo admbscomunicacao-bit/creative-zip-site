@@ -2,9 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ListingCard } from "@/components/StoryCard";
-import { sectionBySlug, sections, stories } from "@/data/stories";
+import { sectionBySlug, sections } from "@/data/stories";
+import { listPublishedStories } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/editoria/$section")({
+  loader: async ({ params }) => {
+    const meta = sectionBySlug(params.section);
+    if (!meta) return { stories: [] };
+    const { stories } = await listPublishedStories({ data: { section: meta.name, limit: 48 } });
+    return { stories };
+  },
+  staleTime: 30_000,
   head: ({ params }) => {
     const s = sectionBySlug(params.section);
     const title = `${s?.name ?? "Editoria"} | Canal Transforma`;
@@ -26,7 +34,7 @@ export const Route = createFileRoute("/editoria/$section")({
 function SectionPage() {
   const { section } = Route.useParams();
   const meta = sectionBySlug(section);
-  const list = stories.filter((s) => s.section === meta?.name);
+  const { stories: list } = Route.useLoaderData();
 
   return (
     <>

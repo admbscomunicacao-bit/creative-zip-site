@@ -24,6 +24,8 @@ import {
   type ArticleInput,
 } from "@/lib/articles.functions";
 import { pickFiles, uploadArticleMedia } from "@/lib/article-media";
+import { CentralPanel } from "@/components/CentralPanel";
+import { youtubeThumb, youtubeVideoId } from "@/lib/youtube";
 
 export const Route = createFileRoute("/editorial/redacao")({
   head: () => ({
@@ -54,7 +56,7 @@ export const Route = createFileRoute("/editorial/redacao")({
   component: Newsroom,
 });
 
-type Tab = "reports" | "drafts" | "reporters";
+type Tab = "reports" | "drafts" | "reporters" | "central";
 
 const FONTS = [
   { label: "Inter", value: "Inter, sans-serif" },
@@ -180,6 +182,7 @@ function Newsroom() {
               status: "draft",
               bodyHtml: "",
               coverUrl: null,
+              videoUrl: null,
             });
           }}
         >
@@ -207,11 +210,22 @@ function Newsroom() {
           >
             Repórteres <span>{reportersQuery.data?.length ?? 0}</span>
           </button>
+          <button
+            type="button"
+            className={tab === "central" ? "active" : ""}
+            onClick={() => setTab("central")}
+          >
+            Central do canal <span className="tab-dot" aria-hidden="true" />
+          </button>
         </nav>
         <div className="admin-side-links">
           <Link to="/editorial/perfil">Meu perfil</Link>
           <Link to="/editorial/seguranca">Segurança da conta</Link>
-          {account.isAdmin ? <Link to="/editorial/usuarios" search={{ u: undefined }}>Administrar usuários</Link> : null}
+          {account.isAdmin ? (
+            <Link to="/editorial/usuarios" search={{ u: undefined }}>
+              Administrar usuários
+            </Link>
+          ) : null}
           <Link to="/">Ver portal público ↗</Link>
           <button
             type="button"
@@ -233,10 +247,12 @@ function Newsroom() {
                 ? "Reportagens publicadas"
                 : tab === "drafts"
                   ? "Rascunhos"
-                  : "Repórteres"}
+                  : tab === "central"
+                    ? "Central do canal"
+                    : "Repórteres"}
             </h1>
           </div>
-          {tab !== "reporters" ? (
+          {tab === "reports" || tab === "drafts" ? (
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -248,7 +264,9 @@ function Newsroom() {
 
         {message ? <p className="admin-flash">{message}</p> : null}
 
-        {tab === "reporters" ? (
+        {tab === "central" ? (
+          <CentralPanel isAdmin={account.isAdmin} />
+        ) : tab === "reporters" ? (
           reportersQuery.isLoading ? (
             <p>Carregando repórteres...</p>
           ) : (
@@ -276,7 +294,12 @@ function Newsroom() {
                 </button>
               ))}
               {account.isAdmin ? (
-                <button type="button" onClick={() => void navigate({ to: "/editorial/usuarios", search: { u: undefined } })}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void navigate({ to: "/editorial/usuarios", search: { u: undefined } })
+                  }
+                >
                   <b>Administrar cadastros</b>
                   <span>Aprovar, bloquear e definir permissões</span>
                   <ArrowRight size={20} />
@@ -343,6 +366,7 @@ function ArticleEditor({
     status: "draft" | "published";
     bodyHtml: string;
     coverUrl: string | null;
+    videoUrl: string | null;
     authorName: string;
   }) => void;
   onDelete: (id: string) => void;
@@ -355,6 +379,8 @@ function ArticleEditor({
     (article.status as "draft" | "published") ?? "draft",
   );
   const [coverUrl, setCoverUrl] = useState<string | null>(article.coverUrl ?? null);
+  const [videoUrl, setVideoUrl] = useState(article.videoUrl ?? "");
+  const videoId = youtubeVideoId(videoUrl);
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -367,7 +393,7 @@ function ArticleEditor({
     const onSelect = () => {
       const selection = window.getSelection();
       const node = selection?.anchorNode ?? null;
-      const el = node instanceof Element ? node : node?.parentElement ?? null;
+      const el = node instanceof Element ? node : (node?.parentElement ?? null);
       const cell = el?.closest(".article-columns > div") ?? null;
       setInColumn(Boolean(cell && bodyRef.current?.contains(cell)));
       if (selection?.rangeCount && bodyRef.current?.contains(selection.anchorNode)) {
@@ -377,7 +403,6 @@ function ArticleEditor({
     document.addEventListener("selectionchange", onSelect);
     return () => document.removeEventListener("selectionchange", onSelect);
   }, []);
-
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
@@ -422,7 +447,8 @@ function ArticleEditor({
   const insertColumns = (count: 1 | 2 | 3) => {
     const cells = Array.from(
       { length: count },
-      () => `<div class="article-column"><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
+      () =>
+        `<div class="article-column"><p data-ph="Escreva aqui ou insira uma foto/vídeo…"><br></p></div>`,
     ).join("");
 
     insertHtml(
@@ -431,7 +457,6 @@ function ArticleEditor({
         `<p class="article-paragraph" data-ph="Continue escrevendo depois das colunas…"><br></p>`,
     );
   };
-
 
   const withUpload = async (multiple: boolean, render: (url: string, kind: string) => string) => {
     setLocalError(null);
@@ -458,6 +483,10 @@ function ArticleEditor({
       setLocalError("Informe o título da reportagem.");
       return;
     }
+    if (videoUrl.trim() && !videoId) {
+      setLocalError("O link do vídeo precisa ser do YouTube (youtube.com ou youtu.be).");
+      return;
+    }
     setLocalError(null);
     setStatus(finalStatus);
     onSave({
@@ -468,6 +497,7 @@ function ArticleEditor({
       status: finalStatus,
       bodyHtml: bodyRef.current?.innerHTML ?? "",
       coverUrl,
+      videoUrl: videoUrl.trim() || null,
       authorName: article.authorName || authorName,
     });
   };
@@ -537,6 +567,27 @@ function ArticleEditor({
             </button>
           </div>
         ) : null}
+        <label>
+          Vídeo do YouTube
+          <input
+            type="url"
+            inputMode="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://youtu.be/..."
+          />
+          <small className="field-hint">
+            Opcional. O vídeo aparece no topo da matéria, no lugar da capa.
+          </small>
+        </label>
+        {videoId ? (
+          <div className="cover-preview video-preview">
+            <img src={youtubeThumb(videoId)} alt="Miniatura do vídeo" />
+            <button type="button" onClick={() => setVideoUrl("")}>
+              Remover vídeo
+            </button>
+          </div>
+        ) : null}
         {article.id ? (
           <button type="button" className="danger" onClick={() => onDelete(article.id!)}>
             <Trash2 size={15} /> {deleting ? "Excluindo..." : "Excluir reportagem"}
@@ -598,8 +649,7 @@ function ArticleEditor({
           <select
             defaultValue=""
             onChange={(e) => {
-              if (e.target.value)
-                exec("fontSize", String(SIZES.indexOf(e.target.value) + 1 || 3));
+              if (e.target.value) exec("fontSize", String(SIZES.indexOf(e.target.value) + 1 || 3));
               e.target.selectedIndex = 0;
             }}
             aria-label="Tamanho"
@@ -739,11 +789,7 @@ function ArticleEditor({
 
         <div className="block-actions">
           {[1, 2, 3].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => insertColumns(n as 1 | 2 | 3)}
-            >
+            <button key={n} type="button" onClick={() => insertColumns(n as 1 | 2 | 3)}>
               + {n} coluna{n > 1 ? "s" : ""}
             </button>
           ))}
@@ -751,10 +797,7 @@ function ArticleEditor({
 
         <div className="block-actions block-actions-insert">
           <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
-          <button
-            type="button"
-            onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}
-          >
+          <button type="button" onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}>
             + Texto
           </button>
           <button
@@ -781,9 +824,7 @@ function ArticleEditor({
             + Galeria
           </button>
         </div>
-
       </section>
     </main>
   );
 }
-

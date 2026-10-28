@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { emailSchema, friendlyAuthError, statusMessage } from "@/lib/editorial-auth";
 import {
   getMyEditorialAccount,
-  recordAuthEvent,
   recordLoginFailure,
+  sendEditorialLoginCode,
+  verifyEditorialLoginCode,
   type EditorialAccount,
 } from "@/lib/editorial.functions";
 
@@ -34,8 +35,9 @@ export const Route = createFileRoute("/editorial/")({
 function EditorialLogin() {
   const navigate = useNavigate();
   const fetchAccount = useServerFn(getMyEditorialAccount);
-  const logEvent = useServerFn(recordAuthEvent);
   const logFailure = useServerFn(recordLoginFailure);
+  const requestCode = useServerFn(sendEditorialLoginCode);
+  const checkCode = useServerFn(verifyEditorialLoginCode);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,12 +60,14 @@ function EditorialLogin() {
     await navigate({ to: nextEditorialStep(account) });
   };
 
-  const sendLoginCode = async (address: string) => {
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: address,
-      options: { shouldCreateUser: false },
-    });
-    return otpError?.message ?? "";
+  // O código é pedido pelo servidor, preso à sessão aberta com a senha.
+  const sendLoginCode = async () => {
+    try {
+      await requestCode();
+      return "";
+    } catch (err) {
+      return err instanceof Error ? err.message : String(err);
+    }
   };
 
   const submitPassword = async (e: React.FormEvent) => {
@@ -88,9 +92,9 @@ function EditorialLogin() {
         setError(friendlyAuthError(signInError.message));
         return;
       }
-      // Senha confere: encerramos a sessão e exigimos o código enviado por e-mail.
-      await supabase.auth.signOut();
-      const otpError = await sendLoginCode(parsedEmail.data);
+      // Senha confere: a sessão fica aberta, mas o banco só libera a redação
+      // depois que o código do e-mail for confirmado para ela.
+      const otpError = await sendLoginCode();
       if (otpError) {
         setError(friendlyAuthError(otpError));
         return;
@@ -120,16 +124,7 @@ function EditorialLogin() {
     }
     setBusy(true);
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email: parsedEmail.data,
-        token: code.trim(),
-        type: "email",
-      });
-      if (verifyError) {
-        setError(friendlyAuthError(verifyError.message));
-        return;
-      }
-      await logEvent({ data: { action: "login_success" } }).catch(() => undefined);
+      await checkCode({ data: { code: code.trim() } });
       const account = (await fetchAccount()) as EditorialAccount | null;
       await goToAccount(account);
     } catch (err) {
@@ -144,7 +139,7 @@ function EditorialLogin() {
     setInfo("");
     setBusy(true);
     try {
-      const otpError = await sendLoginCode(email);
+      const otpError = await sendLoginCode();
       if (otpError) setError(friendlyAuthError(otpError));
       else setInfo("Novo código enviado. Confira sua caixa de entrada e o spam.");
     } finally {
@@ -220,7 +215,12 @@ function EditorialLogin() {
           <button className="login-submit" type="submit" disabled={busy}>
             {busy ? "Verificando..." : "Confirmar código"} <b>→</b>
           </button>
-          <button type="button" className="editorial-secondary" onClick={resendCode} disabled={busy}>
+          <button
+            type="button"
+            className="editorial-secondary"
+            onClick={resendCode}
+            disabled={busy}
+          >
             Reenviar código
           </button>
           {info && <p className="login-message">{info}</p>}
@@ -229,6 +229,7 @@ function EditorialLogin() {
             type="button"
             className="editorial-link-button"
             onClick={() => {
+              void supabase.auth.signOut();
               setStep("password");
               setCode("");
               setError("");
@@ -242,4 +243,3 @@ function EditorialLogin() {
     </EditorialShell>
   );
 }
-

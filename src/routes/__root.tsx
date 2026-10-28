@@ -13,6 +13,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { brand } from "../lib/brand";
+import { getSiteSettings } from "@/lib/site.functions";
+import { CookieNotice } from "../components/CookieNotice";
+import { socialLinks } from "../components/social";
 
 function NotFoundComponent() {
   return (
@@ -65,7 +68,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  // Faixa AO VIVO, canal do YouTube e AdSense vêm do painel; 1 minuto de cache na navegação.
+  loader: () => getSiteSettings(),
+  staleTime: 60_000,
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -96,6 +102,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:image",
         content: "https://www.canaltransforma.com.br/brand/og-canal-transforma.png",
       },
+      ...(loaderData?.adsenseClient
+        ? [{ name: "google-adsense-account", content: loaderData.adsenseClient }]
+        : []),
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -112,6 +121,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/brand/apple-touch-icon.png" },
     ],
     scripts: [
+      ...(loaderData?.adsenseEnabled && loaderData.adsenseClient
+        ? [
+            {
+              src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${loaderData.adsenseClient}`,
+              async: true,
+              crossOrigin: "anonymous" as const,
+            },
+          ]
+        : []),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -145,6 +163,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 url: "https://www.canaltransforma.com.br/brand/icone-app-512.png",
               },
               areaServed: "Catanduva, SP, Brasil",
+              sameAs: socialLinks.map((s) => s.href),
             },
           ],
         }),
@@ -192,6 +211,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <CookieNotice />
     </QueryClientProvider>
   );
 }

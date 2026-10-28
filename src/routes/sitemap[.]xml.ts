@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
-import { sections, stories } from "@/data/stories";
+import { sections } from "@/data/stories";
 
 const BASE_URL = "https://www.canaltransforma.com.br";
 
@@ -43,15 +43,14 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "daily" as const,
             priority: "0.7",
           })),
-          ...stories.map((s) => ({
-            path: `/noticia/${s.slug}`,
-            changefreq: "monthly" as const,
-            priority: "0.6",
-          })),
+          { path: "/videos", changefreq: "daily", priority: "0.7" },
+          { path: "/privacidade", changefreq: "yearly", priority: "0.2" },
         ];
 
+        const published = await publishedArticles();
+
         const seen = new Set(entries.map((e) => e.path));
-        for (const article of await publishedArticles()) {
+        for (const article of published) {
           const path = `/noticia/${article.slug}`;
           if (seen.has(path)) continue;
           seen.add(path);
