@@ -20,14 +20,25 @@ export type Database = {
           author_name: string
           body_html: string
           color: string
+          corrected_at: string | null
+          correction_note: string | null
+          cover_alt: string
+          cover_caption: string
+          cover_credit: string
           cover_url: string | null
           created_at: string
           id: string
           published_at: string | null
+          published_by: string | null
+          review_note: string | null
+          reviewed_by: string | null
           section: string
           slug: string
           status: Database["public"]["Enums"]["article_status"]
+          submitted_at: string | null
+          subtitle: string
           summary: string
+          tags: string[]
           title: string
           updated_at: string
           video_url: string | null
@@ -37,14 +48,25 @@ export type Database = {
           author_name?: string
           body_html?: string
           color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
           cover_url?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
           section?: string
           slug: string
           status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
           summary?: string
+          tags?: string[]
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -54,14 +76,25 @@ export type Database = {
           author_name?: string
           body_html?: string
           color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
           cover_url?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
           section?: string
           slug?: string
           status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
           summary?: string
+          tags?: string[]
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -164,6 +197,7 @@ export type Database = {
           adsense_enabled: boolean
           id: number
           live_active: boolean
+          live_started_at: string | null
           live_title: string
           live_url: string | null
           updated_at: string
@@ -175,6 +209,7 @@ export type Database = {
           adsense_enabled?: boolean
           id?: number
           live_active?: boolean
+          live_started_at?: string | null
           live_title?: string
           live_url?: string | null
           updated_at?: string
@@ -186,6 +221,7 @@ export type Database = {
           adsense_enabled?: boolean
           id?: number
           live_active?: boolean
+          live_started_at?: string | null
           live_title?: string
           live_url?: string | null
           updated_at?: string
@@ -233,12 +269,13 @@ export type Database = {
         Returns: boolean
       }
       is_editorial_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
       is_mfa_session: { Args: never; Returns: boolean }
     }
     Enums: {
       account_status: "pending" | "approved" | "blocked"
-      app_role: "reporter" | "admin"
-      article_status: "draft" | "published"
+      app_role: "reporter" | "admin" | "editor"
+      article_status: "draft" | "review" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -367,8 +404,8 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ["pending", "approved", "blocked"],
-      app_role: ["reporter", "admin"],
-      article_status: ["draft", "published"],
+      app_role: ["reporter", "admin", "editor"],
+      article_status: ["draft", "review", "published"],
     },
   },
 } as const
