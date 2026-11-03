@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { brandCodesEnabled, startEditorialSignup } from "@/lib/account-codes.functions";
 import { EditorialShell } from "@/components/editorial-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPhoneBR, friendlyAuthError, signupSchema, toE164BR } from "@/lib/editorial-auth";
@@ -47,6 +49,8 @@ function CreateAccount() {
   const [uploadError, setUploadError] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const checkBrand = useServerFn(brandCodesEnabled);
+  const startSignup = useServerFn(startEditorialSignup);
 
   const set = (key: keyof typeof form, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -75,6 +79,36 @@ function CreateAccount() {
     }
     setBusy(true);
     try {
+      // Caminho principal: código de 6 dígitos enviado pelo contato@.
+      if (await checkBrand().catch(() => false)) {
+        try {
+          await startSignup({
+            data: {
+              email: parsed.data.email,
+              password: parsed.data.password,
+              fullName: parsed.data.fullName,
+              phone: toE164BR(parsed.data.phone),
+            },
+          });
+        } catch (err) {
+          setError(
+            err instanceof Error
+              ? friendlyAuthError(err.message)
+              : "Não foi possível criar a conta.",
+          );
+          return;
+        }
+        setPendingSignup({
+          fullName: parsed.data.fullName,
+          phone: formatPhoneBR(parsed.data.phone),
+          bio: form.bio,
+          avatarFile,
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        await navigate({ to: "/editorial/confirmar-email", search: { email: parsed.data.email } });
+        return;
+      }
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: parsed.data.email,
         password: parsed.data.password,

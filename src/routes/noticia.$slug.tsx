@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { NewsCard } from "@/components/StoryCard";
 import { ShareBar } from "@/components/ShareBar";
 import { ArticleView } from "@/components/ArticleView";
+import { getArticleAuthorSlug } from "@/lib/team.functions";
 import { sections, type Section, type SectionColor } from "@/data/stories";
 import {
   formatStoryDate,
@@ -16,9 +17,12 @@ export const Route = createFileRoute("/noticia/$slug")({
   loader: async ({ params }) => {
     const article = await getPublishedArticle({ data: { slug: params.slug } });
     if (!article) throw notFound();
-    const { stories: related } = await listPublishedStories({
-      data: { section: article.section as Section, exclude: article.slug, limit: 3 },
-    });
+    const [{ stories: related }, authorSlug] = await Promise.all([
+      listPublishedStories({
+        data: { section: article.section as Section, exclude: article.slug, limit: 3 },
+      }),
+      getArticleAuthorSlug({ data: { slug: params.slug } }),
+    ]);
     const videoId = youtubeVideoId(article.videoUrl);
     const updatedLater =
       article.updatedAt &&
@@ -54,6 +58,7 @@ export const Route = createFileRoute("/noticia/$slug")({
       correctionNote: article.correctionNote,
       correctedLabel: article.correctedAt ? formatStoryDate(article.correctedAt) : "",
       author: article.authorName || "Canal Transforma",
+      authorSlug,
       publishedAtIso: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
     };
   },
@@ -148,6 +153,11 @@ function Article() {
           coverCredit: data.coverCredit,
           videoId,
           author,
+          authorLink: data.authorSlug ? (
+            <Link to="/autor/$slug" params={{ slug: data.authorSlug }}>
+              {author}
+            </Link>
+          ) : undefined,
           dateLabel: `Publicado em ${story.date}`,
           updatedLabel,
           bodyHtml,
@@ -160,6 +170,13 @@ function Article() {
           <div className="article-share-end">
             <p>Achou útil? Mande para quem também precisa saber.</p>
             <ShareBar url={url} title={story.title} />
+            <p className="article-report">
+              Viu um erro nesta matéria?{" "}
+              <Link to="/fale-conosco" search={{ assunto: "correcao" }}>
+                Peça uma correção
+              </Link>
+              .
+            </p>
           </div>
         }
       />

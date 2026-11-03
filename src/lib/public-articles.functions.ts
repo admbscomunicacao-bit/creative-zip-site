@@ -29,11 +29,6 @@ const SELECT =
   "slug,title,subtitle,summary,section,color,body_html,cover_url,cover_caption,cover_credit,cover_alt,video_url,tags,author_name,published_at,updated_at,correction_note,corrected_at";
 const LIST_SELECT = "slug,title,summary,section,color,cover_url,video_url,published_at";
 
-/** Coluna nova ainda não criada no banco (migração pendente): repete a consulta sem ela. */
-const missingVideoColumn = (error: { code?: string; message?: string } | null) =>
-  Boolean(error && (error.code === "42703" || /video_url/.test(error.message ?? "")));
-const withoutVideo = (select: string) => select.replace(",video_url", "");
-
 type Row = {
   slug: string;
   title: string;
@@ -120,8 +115,7 @@ export const getPublishedArticle = createServerFn({ method: "GET" })
         .eq("slug", data.slug)
         .eq("status", "published")
         .maybeSingle();
-    let { data: row, error } = await fetchRow(SELECT);
-    if (missingVideoColumn(error)) ({ data: row } = await fetchRow(withoutVideo(SELECT)));
+    const { data: row } = await fetchRow(SELECT);
     return row ? toPublic(row as unknown as Row) : null;
   });
 
@@ -130,10 +124,12 @@ const listInput = z.object({
   q: z.string().trim().max(120).optional(),
   exclude: z.string().trim().max(120).optional(),
   limit: z.number().int().min(1).max(60).default(24),
+  /** Quantas já foram mostradas (para o botão "carregar mais"). */
+  offset: z.number().int().min(0).max(5000).default(0),
 });
 
-/** Escapa curingas do ILIKE para a busca tratar o termo como texto. */
-const likeTerm = (q: string) => `%${q.replace(/[\\%_,()]/g, (c) => `\\${c}`)}%`;
+/** Termo de busca: tira curingas e aspas e põe entre aspas para vírgulas e parênteses não quebrarem o filtro. */
+const likeTerm = (q: string) => `"%${q.replace(/[\\%_"*]/g, " ").trim()}%"`;
 
 /** Lista as reportagens publicadas, mais novas primeiro. */
 export const listPublishedStories = createServerFn({ method: "GET" })
@@ -141,26 +137,34 @@ export const listPublishedStories = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     let rows: ListRow[] | null = null;
     try {
-      const run = (select: string) => {
-        let query = publicClient()
-          .from("articles")
-          .select(select)
-          .eq("status", "published")
-          .order("published_at", { ascending: false, nullsFirst: false })
-          .limit(data.limit);
-        if (data.section) query = query.eq("section", data.section);
-        if (data.exclude) query = query.neq("slug", data.exclude);
-        if (data.q)
-          query = query.or(`title.ilike.${likeTerm(data.q)},summary.ilike.${likeTerm(data.q)}`);
-        return query;
-      };
-      let { data: found, error } = await run(LIST_SELECT);
-      if (missingVideoColumn(error))
-        ({ data: found, error } = await run(withoutVideo(LIST_SELECT)));
+      let query = publicClient()
+        .from("articles")
+        .select(LIST_SELECT)
+        .eq("status", "published")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        // Um a mais para saber se ainda há o que carregar.
+        .range(data.offset, data.offset + data.limit);
+      if (data.section) query = query.eq("section", data.section);
+      if (data.exclude) query = query.neq("slug", data.exclude);
+      if (data.q) {
+        const term = likeTerm(data.q);
+        const tag = data.q
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N} -]/gu, "")
+          .trim();
+        const filters = [`title.ilike.${term}`, `summary.ilike.${term}`, `body_html.ilike.${term}`];
+        if (tag) filters.push(`tags.cs.{"${tag}"}`);
+        query = query.or(filters.join(","));
+      }
+      const { data: found, error } = await query;
       if (!error) rows = (found ?? []) as unknown as ListRow[];
     } catch {
       rows = null;
     }
 
-    return { stories: (rows ?? []).map(toStory) };
+    const list = rows ?? [];
+    return {
+      stories: list.slice(0, data.limit).map(toStory),
+      hasMore: list.length > data.limit,
+    };
   });

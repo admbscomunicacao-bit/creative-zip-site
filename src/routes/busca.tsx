@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { ListingCard } from "@/components/StoryCard";
+import { StoryListing } from "@/components/StoryListing";
 import { sections } from "@/data/stories";
 import { listPublishedStories } from "@/lib/public-articles.functions";
 
@@ -13,7 +13,9 @@ export const Route = createFileRoute("/busca")({
   }),
   loaderDeps: ({ search }) => ({ q: (search.q ?? "").trim().slice(0, 120) }),
   loader: async ({ deps }) =>
-    deps.q ? (await listPublishedStories({ data: { q: deps.q, limit: 48 } })).stories : [],
+    deps.q
+      ? await listPublishedStories({ data: { q: deps.q, limit: 24 } })
+      : { stories: [], hasMore: false },
 
   head: () => ({
     meta: [
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/busca")({
 function SearchPage() {
   const { q } = Route.useSearch();
   const term = (q ?? "").trim().toLowerCase();
-  const results = Route.useLoaderData();
+  const { stories: results, hasMore } = Route.useLoaderData();
 
   return (
     <>
@@ -55,7 +57,9 @@ function SearchPage() {
             ? "Use a busca no topo da página para procurar reportagens."
             : results.length === 0
               ? "Nenhuma reportagem com esse termo. Tente outra palavra ou comece por uma editoria."
-              : `${results.length} ${results.length === 1 ? "reportagem encontrada" : "reportagens encontradas"}.`}
+              : hasMore
+                ? "Reportagens que falam do assunto, das mais novas para as mais antigas."
+                : `${results.length} ${results.length === 1 ? "reportagem encontrada" : "reportagens encontradas"}.`}
         </p>
         {results.length === 0 && (
           <div className="section-links search-sections">
@@ -73,11 +77,13 @@ function SearchPage() {
           </div>
         )}
         {results.length > 0 && (
-          <div className="listing-grid">
-            {results.map((s) => (
-              <ListingCard key={s.slug} story={s} />
-            ))}
-          </div>
+          <StoryListing
+            key={term}
+            initial={results}
+            hasMore={hasMore}
+            filter={{ q: q ?? "" }}
+            pageSize={24}
+          />
         )}
       </section>
       <SiteFooter />

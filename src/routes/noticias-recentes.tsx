@@ -2,11 +2,11 @@ import { SITE_URL } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { ListingCard } from "@/components/StoryCard";
+import { StoryListing } from "@/components/StoryListing";
 import { listPublishedStories } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/noticias-recentes")({
-  loader: () => listPublishedStories({ data: { limit: 60 } }),
+  loader: () => listPublishedStories({ data: { limit: 24 } }),
   staleTime: 30_000,
   head: () => ({
     meta: [
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/noticias-recentes")({
 });
 
 function RecentNews() {
-  const { stories } = Route.useLoaderData();
+  const { stories, hasMore } = Route.useLoaderData();
   return (
     <>
       <SiteHeader />
@@ -43,15 +43,9 @@ function RecentNews() {
         <p className="listing-intro">
           {stories.length === 0
             ? "Ainda não há reportagens publicadas. Volte em breve."
-            : stories.length === 1
-              ? "1 reportagem publicada no portal."
-              : `${stories.length} reportagens publicadas no portal.`}
+            : "As reportagens mais recentes do portal, da mais nova para a mais antiga."}
         </p>
-        <div className="listing-grid">
-          {stories.map((s) => (
-            <ListingCard key={s.slug} story={s} />
-          ))}
-        </div>
+        <StoryListing initial={stories} hasMore={hasMore} filter={{}} pageSize={24} />
       </section>
       <SiteFooter />
     </>

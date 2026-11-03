@@ -2,16 +2,15 @@ import { SITE_URL } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { ListingCard } from "@/components/StoryCard";
+import { StoryListing } from "@/components/StoryListing";
 import { sectionBySlug, sections } from "@/data/stories";
 import { listPublishedStories } from "@/lib/public-articles.functions";
 
 export const Route = createFileRoute("/editoria/$section")({
   loader: async ({ params }) => {
     const meta = sectionBySlug(params.section);
-    if (!meta) return { stories: [] };
-    const { stories } = await listPublishedStories({ data: { section: meta.name, limit: 48 } });
-    return { stories };
+    if (!meta) return { stories: [], hasMore: false };
+    return listPublishedStories({ data: { section: meta.name, limit: 24 } });
   },
   staleTime: 30_000,
   head: ({ params }) => {
@@ -37,7 +36,7 @@ export const Route = createFileRoute("/editoria/$section")({
 function SectionPage() {
   const { section } = Route.useParams();
   const meta = sectionBySlug(section);
-  const { stories: list } = Route.useLoaderData();
+  const { stories: list, hasMore } = Route.useLoaderData();
 
   return (
     <>
@@ -51,11 +50,13 @@ function SectionPage() {
         {list.length === 0 ? (
           <p className="listing-intro">Ainda não há reportagens publicadas nesta editoria.</p>
         ) : (
-          <div className="listing-grid">
-            {list.map((s) => (
-              <ListingCard key={s.slug} story={s} />
-            ))}
-          </div>
+          <StoryListing
+            key={section}
+            initial={list}
+            hasMore={hasMore}
+            filter={{ section: meta?.name as "Cidade" }}
+            pageSize={24}
+          />
         )}
         <div className="section-links">
           {sections

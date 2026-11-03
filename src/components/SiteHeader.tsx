@@ -33,6 +33,21 @@ export function SiteHeader() {
           <Link to="/" className="brand" aria-label="Canal Transforma, página inicial">
             <img src={brand.logoOnBlue} alt="Canal Transforma" width={720} height={186} />
           </Link>
+          <nav className="header-nav" aria-label="Editorias">
+            {sections.map((s) => (
+              <Link
+                key={s.slug}
+                to="/editoria/$section"
+                params={{ section: s.slug }}
+                activeProps={{ "aria-current": "page" }}
+              >
+                {s.name}
+              </Link>
+            ))}
+            <Link to="/videos" activeProps={{ "aria-current": "page" }}>
+              Vídeos
+            </Link>
+          </nav>
           <div className="header-actions">
             <form className="header-search" role="search" onSubmit={submit}>
               <label className="sr-only" htmlFor="site-search">
@@ -99,13 +114,24 @@ export function SiteHeader() {
                 <b>→</b>
               </Link>
             </nav>
+            <nav aria-label="Sobre o Canal" className="menu-about">
+              <Link to="/quem-somos" onClick={() => setOpen(false)}>
+                Quem somos
+              </Link>
+              <Link to="/expediente" onClick={() => setOpen(false)}>
+                Expediente
+              </Link>
+              <Link to="/politica-editorial" onClick={() => setOpen(false)}>
+                Política editorial
+              </Link>
+              <Link to="/fale-conosco" onClick={() => setOpen(false)}>
+                Envie sua pauta
+              </Link>
+            </nav>
             <div className="menu-social">
               <span>Siga o Canal</span>
               <SocialRow className="menu-social-row" size={20} />
             </div>
-            <Link to="/editorial" className="menu-editorial" onClick={() => setOpen(false)}>
-              Entrar na área editorial <b>→</b>
-            </Link>
           </aside>
         </div>
       </div>

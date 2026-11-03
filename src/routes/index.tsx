@@ -55,11 +55,16 @@ function Home() {
   const withCover = stories.filter((s) => s.image);
   const featured = (withCover.length ? withCover : stories).slice(0, 4);
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hovering, setHovering] = useState(false);
 
+  // Troca sozinho, mas para ao passar o mouse, ao focar e com o botão de pausa.
   useEffect(() => {
+    if (paused || hovering || featured.length < 2) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => setIndex((x) => (x + 1) % featured.length), AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, [featured.length, index]);
+  }, [featured.length, index, paused, hovering]);
 
   const active = featured[index] ?? featured[0];
   const daily = stories.slice(0, 4);
@@ -109,8 +114,12 @@ function Home() {
       <div className="home-shell">
         <h1 className="sr-only">Canal Transforma: jornalismo local de Catanduva e região</h1>
         <section
-          className={`headline-carousel ${active.color} has-cover`}
+          className={`headline-carousel ${active.color} has-cover${paused || hovering ? " is-paused" : ""}`}
           aria-label="Principais notícias"
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+          onFocus={() => setHovering(true)}
+          onBlur={() => setHovering(false)}
         >
           <div className="carousel-media" aria-hidden="true">
             {featured.map((s, i) => (
@@ -152,6 +161,17 @@ function Home() {
             <span>{String(index + 1).padStart(2, "0")}</span>
           </div>
           <div className="carousel-arrows" aria-label="Navegar pelas principais notícias">
+            {featured.length > 1 ? (
+              <button
+                type="button"
+                className="carousel-pause"
+                aria-label={paused ? "Retomar troca automática" : "Pausar troca automática"}
+                aria-pressed={paused}
+                onClick={() => setPaused((p) => !p)}
+              >
+                {paused ? "▶" : "❚❚"}
+              </button>
+            ) : null}
             <button aria-label="Notícia anterior" onClick={() => go(index - 1)}>
               ←
             </button>

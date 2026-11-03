@@ -211,7 +211,9 @@ function describe(code: number, isDay: boolean): Pick<Weather, "label" | "kind">
 let weatherCache: { at: number; value: Weather | null } | null = null;
 
 export const getWeather = createServerFn({ method: "GET" }).handler(async () => {
-  if (weatherCache && Date.now() - weatherCache.at < 15 * 60_000) return weatherCache.value;
+  // Clima bom vale 15 min; falha momentânea só 1 min, para não sumir do topo por muito tempo.
+  const ttl = weatherCache?.value ? 15 * 60_000 : 60_000;
+  if (weatherCache && Date.now() - weatherCache.at < ttl) return weatherCache.value;
   let value: Weather | null = null;
   try {
     const res = await fetch(

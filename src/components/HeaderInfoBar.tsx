@@ -55,7 +55,8 @@ export function HeaderInfoBar() {
     queryKey: ["weather"],
     queryFn: () => fetchWeather(),
     staleTime: 15 * 60_000,
-    refetchInterval: 15 * 60_000,
+    // Sem resposta do clima: tenta de novo em 1 minuto.
+    refetchInterval: (query) => (query.state.data ? 15 * 60_000 : 60_000),
   });
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [trafficOpen, setTrafficOpen] = useState(false);

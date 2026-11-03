@@ -7,6 +7,9 @@ export type PendingSignupData = {
   phone: string;
   bio: string;
   avatarFile: File | null;
+  /** Só na memória desta aba: entra sozinho depois de confirmar o código. */
+  email?: string;
+  password?: string;
 };
 
 let pending: PendingSignupData | null = null;

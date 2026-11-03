@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { sections } from "@/data/stories";
+import { listPublicTeam } from "@/lib/team.functions";
 
 const BASE_URL = "https://canaltransforma.com.br";
 
@@ -23,7 +24,8 @@ async function publishedArticles(): Promise<{ slug: string; published_at: string
     const { data } = await supabase
       .from("articles")
       .select("slug,published_at")
-      .eq("status", "published");
+      .eq("status", "published")
+      .lte("published_at", new Date().toISOString());
     return (data ?? []) as { slug: string; published_at: string | null }[];
   } catch {
     return [];
@@ -44,7 +46,16 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: "0.7",
           })),
           { path: "/videos", changefreq: "daily", priority: "0.7" },
+          { path: "/quem-somos", changefreq: "yearly", priority: "0.4" },
+          { path: "/expediente", changefreq: "monthly", priority: "0.4" },
+          { path: "/politica-editorial", changefreq: "yearly", priority: "0.4" },
+          { path: "/fale-conosco", changefreq: "yearly", priority: "0.3" },
           { path: "/privacidade", changefreq: "yearly", priority: "0.2" },
+          ...(await listPublicTeam().catch(() => [])).map((m) => ({
+            path: `/autor/${m.slug}`,
+            changefreq: "weekly" as const,
+            priority: "0.4",
+          })),
         ];
 
         const published = await publishedArticles();

@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://canaltransforma.com.br/sitemap.xml
+Sitemap: https://canaltransforma.com.br/news-sitemap.xml

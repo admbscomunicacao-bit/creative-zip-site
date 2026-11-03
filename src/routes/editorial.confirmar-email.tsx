@@ -6,7 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { emailSchema, friendlyAuthError } from "@/lib/editorial-auth";
 import { clearPendingSignup, getPendingSignup } from "@/lib/editorial-signup-store";
 import { ensureEditorialProfile, updateMyEditorialProfile } from "@/lib/editorial.functions";
-
+import {
+  brandCodesEnabled,
+  confirmEditorialSignup,
+  resendSignupCode,
+} from "@/lib/account-codes.functions";
 
 type Search = { email?: string | undefined };
 
@@ -39,6 +43,9 @@ function ConfirmEmail() {
   const navigate = useNavigate();
   const ensureProfile = useServerFn(ensureEditorialProfile);
   const updateProfile = useServerFn(updateMyEditorialProfile);
+  const checkBrand = useServerFn(brandCodesEnabled);
+  const confirmSignup = useServerFn(confirmEditorialSignup);
+  const resendCode = useServerFn(resendSignupCode);
 
   const [email, setEmail] = useState(initialEmail ?? "");
   const [code, setCode] = useState("");
@@ -101,6 +108,31 @@ function ConfirmEmail() {
     }
     setBusy(true);
     try {
+      if (await checkBrand().catch(() => false)) {
+        try {
+          await confirmSignup({ data: { email: parsedEmail.data, code: code.trim() } });
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Código incorreto ou expirado.");
+          return;
+        }
+        // Entra direto com a senha do cadastro (guardada só nesta aba) para salvar foto e bio.
+        const pending = getPendingSignup();
+        if (pending?.password && pending.email?.toLowerCase() === parsedEmail.data.toLowerCase()) {
+          const { data: signed } = await supabase.auth.signInWithPassword({
+            email: parsedEmail.data,
+            password: pending.password,
+          });
+          if (signed.user) {
+            await savePendingSignupData(signed.user.id);
+            await navigate({ to: "/editorial/aguardando" });
+            return;
+          }
+        }
+        clearPendingSignup();
+        setInfo("E-mail confirmado. Entre com seu e-mail e senha para continuar.");
+        await navigate({ to: "/editorial" });
+        return;
+      }
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: parsedEmail.data,
         token: code.trim(),
@@ -129,7 +161,6 @@ function ConfirmEmail() {
       if (user.data.user?.id) await savePendingSignupData(user.data.user.id);
       await navigate({ to: "/editorial/aguardando" });
     } finally {
-
       setBusy(false);
     }
   };
@@ -144,6 +175,17 @@ function ConfirmEmail() {
     }
     setBusy(true);
     try {
+      if (await checkBrand().catch(() => false)) {
+        try {
+          await resendCode({ data: { email: parsedEmail.data } });
+          setInfo(
+            "Se o cadastro estiver pendente, enviamos um novo código. Confira a caixa de entrada e o spam.",
+          );
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Não foi possível reenviar.");
+        }
+        return;
+      }
       const { error: resendError } = await supabase.auth.resend({
         type: "signup",
         email: parsedEmail.data,

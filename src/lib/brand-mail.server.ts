@@ -8,8 +8,17 @@ const SMTP_HOST = "smtp.suite.uol";
 // Na 587 (STARTTLS) um intermediário poderia apagar o aviso de TLS e a senha iria aberta.
 const SMTP_PORT = 465;
 const SMTP_USER = "contato@canaltransforma.com.br";
+/** Caixa da redação, que recebe pautas e avisos internos. */
+export const NEWSROOM_INBOX = SMTP_USER;
 
-export type BrandMessage = { to: string; subject: string; html: string; text: string };
+export type BrandMessage = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  /** Endereço para onde vai a resposta (ex.: leitor que mandou a pauta). */
+  reply?: string;
+};
 
 export function brandMailConfigured(): boolean {
   return Boolean(process.env["UOL_SMTP_PASSWORD"]);
@@ -43,6 +52,13 @@ export async function sendBrandMail(message: BrandMessage): Promise<void> {
       socketTimeoutMs: 15_000,
       responseTimeoutMs: 15_000,
     },
-    { from: { name: SITE_NAME, email: SMTP_USER }, ...message },
+    {
+      from: { name: SITE_NAME, email: SMTP_USER },
+      to: message.to,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      ...(message.reply ? { reply: message.reply } : {}),
+    },
   );
 }

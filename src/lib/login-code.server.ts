@@ -24,6 +24,11 @@ function signingKey(): string {
 
 /** HMAC-SHA256 do código, amarrado à conta. */
 export async function signLoginCode(userId: string, code: string): Promise<string> {
+  return signCode("editorial-login-code", userId, code);
+}
+
+/** Mesmo HMAC, com finalidade separada (código de cadastro não vale para senha e vice-versa). */
+export async function signCode(purpose: string, userId: string, code: string): Promise<string> {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -35,7 +40,7 @@ export async function signLoginCode(userId: string, code: string): Promise<strin
   const signature = await crypto.subtle.sign(
     "HMAC",
     key,
-    encoder.encode(`editorial-login-code:${userId}:${code}`),
+    encoder.encode(`${purpose}:${userId}:${code}`),
   );
   return Array.from(new Uint8Array(signature), (b) => b.toString(16).padStart(2, "0")).join("");
 }
