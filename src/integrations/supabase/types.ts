@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_views: {
+        Row: {
+          article_id: string
+          day: string
+          views: number
+        }
+        Insert: {
+          article_id: string
+          day?: string
+          views?: number
+        }
+        Update: {
+          article_id?: string
+          day?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           author_id: string
@@ -261,6 +287,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["account_status"]
       }
       can_use_editorial: { Args: { _user_id: string }; Returns: boolean }
+      count_article_view: { Args: { _slug: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -271,6 +298,13 @@ export type Database = {
       is_editorial_admin: { Args: { _user_id: string }; Returns: boolean }
       is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
       is_mfa_session: { Args: never; Returns: boolean }
+      most_read_articles: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          slug: string
+          views: number
+        }[]
+      }
     }
     Enums: {
       account_status: "pending" | "approved" | "blocked"
