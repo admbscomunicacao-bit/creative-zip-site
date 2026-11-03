@@ -152,19 +152,23 @@ export const sendEditorialLoginCode = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false });
       const sent = recent ?? [];
       if (sent[0] && Date.now() - new Date(sent[0].created_at).getTime() < CODE_RESEND_SECONDS * 1000) {
-        // O código enviado há menos de 60 s continua valendo: não manda outro.
-        return { ok: true, email, reused: true };
+        const { count: usedSince } = await limiter
+          .from("audit_log")
+          .select("id", { count: "exact", head: true })
+          .eq("actor_id", context.userId)
+          .eq("action", "login_success")
+          .gte("created_at", sent[0].created_at);
+        // O código enviado há menos de 60 s continua valendo (se ainda não foi usado): não manda outro.
+        if ((usedSince ?? 0) === 0) return { ok: true, email, reused: true };
       }
       if (sent.length >= MAX_CODES_PER_15_MIN) {
         throw new Error("Muitos códigos pedidos. Aguarde 15 minutos e tente de novo.");
       }
       try {
-        const { data: link, error: linkError } = await limiter.auth.admin.generateLink({
-          type: "magiclink",
-          email,
-        });
-        const code = link?.properties?.email_otp;
-        if (linkError || !code) throw linkError ?? new Error("generateLink sem email_otp");
+        // Código de 6 dígitos do próprio site; no banco fica só a assinatura dele.
+        const { generateLoginCode, signLoginCode } = await import("@/lib/login-code.server");
+        const code = generateLoginCode();
+        const signature = await signLoginCode(context.userId, code);
         const React = await import("react");
         const { MagicLinkEmail } = await import("@/lib/email-templates/magic-link");
         const message = await mail.renderBrandMessage(
@@ -172,13 +176,15 @@ export const sendEditorialLoginCode = createServerFn({ method: "POST" })
           "Seu código de acesso | Canal Transforma",
           React.createElement(MagicLinkEmail, { token: code }),
         );
-        await mail.sendBrandMail(message);
-        await limiter.from("audit_log").insert({
+        // Grava antes de enviar: se o registro falhar, nenhum código inválido chega ao e-mail.
+        const { error: logError } = await limiter.from("audit_log").insert({
           actor_id: context.userId,
           target_user_id: context.userId,
           action: "login_code_sent",
-          detail: {},
+          detail: { signature },
         });
+        if (logError) throw logError;
+        await mail.sendBrandMail(message);
         return { ok: true, email, reused: false };
       } catch (brandError) {
         // Não trava o login: cai no e-mail do sistema de login logo abaixo.
@@ -225,19 +231,55 @@ export const verifyEditorialLoginCode = createServerFn({ method: "POST" })
       throw new Error("Muitas tentativas com código errado. Aguarde 15 minutos e entre de novo.");
     }
 
-    const checker = throwawayClient();
-    const { error } = await checker.auth.verifyOtp({ email, token: data.code, type: "email" });
-    if (error) {
-      await supabaseAdmin.from("audit_log").insert({
+    const recordFailure = () =>
+      supabaseAdmin.from("audit_log").insert({
         actor_id: context.userId,
         target_user_id: context.userId,
         action: "login_code_failed",
         detail: {},
       });
-      throw new Error(error.message);
+
+    // Código do próprio site: vale só o último enviado, por até 1 hora, e uma única vez.
+    const { LOGIN_CODE_TTL_MINUTES, signLoginCode, sameSignature } = await import(
+      "@/lib/login-code.server"
+    );
+    const { data: lastSent } = await supabaseAdmin
+      .from("audit_log")
+      .select("created_at, detail")
+      .eq("actor_id", context.userId)
+      .eq("action", "login_code_sent")
+      .gte("created_at", new Date(Date.now() - LOGIN_CODE_TTL_MINUTES * 60_000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const expected =
+      lastSent?.detail && typeof lastSent.detail === "object" && !Array.isArray(lastSent.detail)
+        ? (lastSent.detail as Record<string, unknown>)["signature"]
+        : undefined;
+
+    if (lastSent && typeof expected === "string") {
+      const { count: usedCount } = await supabaseAdmin
+        .from("audit_log")
+        .select("id", { count: "exact", head: true })
+        .eq("actor_id", context.userId)
+        .eq("action", "login_success")
+        .gte("created_at", lastSent.created_at);
+      const typed = await signLoginCode(context.userId, data.code);
+      if ((usedCount ?? 0) > 0 || !sameSignature(typed, expected)) {
+        await recordFailure();
+        throw new Error("Código incorreto ou já usado. Confira o último e-mail ou peça um novo código.");
+      }
+    } else {
+      // Reserva: código enviado pelo e-mail padrão do sistema de login.
+      const checker = throwawayClient();
+      const { error } = await checker.auth.verifyOtp({ email, token: data.code, type: "email" });
+      if (error) {
+        await recordFailure();
+        throw new Error(error.message);
+      }
+      // A conferência abre uma sessão extra só por código: encerramos na hora.
+      await checker.auth.signOut({ scope: "local" }).catch(() => undefined);
     }
-    // A conferência abre uma sessão extra só por código: encerramos na hora.
-    await checker.auth.signOut({ scope: "local" }).catch(() => undefined);
 
     const { error: saveError } = await supabaseAdmin.from("editorial_verified_sessions").upsert({
       session_id: sessionId,
