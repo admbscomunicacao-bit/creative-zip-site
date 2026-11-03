@@ -13,7 +13,7 @@ export const Route = createFileRoute("/privacidade")({
       { property: "og:title", content: "Política de privacidade | Canal Transforma" },
       { property: "og:type", content: "website" },
     ],
-    links: [{ rel: "canonical", href: "https://www.canaltransforma.com.br/privacidade" }],
+    links: [{ rel: "canonical", href: "https://canaltransforma.com.br/privacidade" }],
   }),
   component: PrivacyPage,
 });
@@ -70,7 +70,7 @@ function PrivacyPage() {
           <h2>Seus direitos</h2>
           <p>
             Você pode pedir acesso, correção ou exclusão dos seus dados pelo e-mail{" "}
-            <a href="mailto:canaltransformaa@gmail.com">canaltransformaa@gmail.com</a>.
+            <a href="mailto:contato@canaltransforma.com.br">contato@canaltransforma.com.br</a>.
           </p>
         </div>
       </article>

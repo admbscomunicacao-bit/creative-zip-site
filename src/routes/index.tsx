@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { LeadStory, MiniStory, NewsCard } from "@/components/StoryCard";
 import { VideoHub } from "@/components/VideoHub";
 import { sections } from "@/data/stories";
-import { brand } from "@/lib/brand";
+import { brand, SITE_URL } from "@/lib/brand";
 import { listPublishedStories } from "@/lib/public-articles.functions";
 import { getChannelVideos } from "@/lib/site.functions";
 
@@ -33,7 +33,9 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: `${SITE_URL}/` },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
   }),
   component: Home,
 });
@@ -240,25 +242,6 @@ function Home() {
             </Link>
           ))}
         </div>
-
-        <section className="editorial-band">
-          <img
-            className="editorial-band-mark"
-            src={brand.icon}
-            alt=""
-            width={512}
-            height={512}
-            loading="lazy"
-          />
-          <div>
-            <p className="eyebrow">Área restrita</p>
-            <h2>Publique com responsabilidade.</h2>
-            <p>Um acesso pensado para quem apura, revisa e cuida das notícias de Catanduva.</p>
-          </div>
-          <Link to="/editorial">
-            Entrar na área editorial <b>→</b>
-          </Link>
-        </section>
       </div>
       <SiteFooter />
     </>

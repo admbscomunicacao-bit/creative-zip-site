@@ -16,10 +16,17 @@ export type PublicArticle = {
   authorName: string;
   publishedAt: string | null;
   updatedAt: string | null;
+  subtitle: string;
+  coverCaption: string;
+  coverCredit: string;
+  coverAlt: string;
+  tags: string[];
+  correctionNote: string | null;
+  correctedAt: string | null;
 };
 
 const SELECT =
-  "slug,title,summary,section,color,body_html,cover_url,video_url,author_name,published_at,updated_at";
+  "slug,title,subtitle,summary,section,color,body_html,cover_url,cover_caption,cover_credit,cover_alt,video_url,tags,author_name,published_at,updated_at,correction_note,corrected_at";
 const LIST_SELECT = "slug,title,summary,section,color,cover_url,video_url,published_at";
 
 /** Coluna nova ainda não criada no banco (migração pendente): repete a consulta sem ela. */
@@ -39,6 +46,13 @@ type Row = {
   author_name: string;
   published_at: string | null;
   updated_at: string | null;
+  subtitle?: string | null;
+  cover_caption?: string | null;
+  cover_credit?: string | null;
+  cover_alt?: string | null;
+  tags?: string[] | null;
+  correction_note?: string | null;
+  corrected_at?: string | null;
 };
 
 type ListRow = Pick<
@@ -58,6 +72,13 @@ const toPublic = (row: Row): PublicArticle => ({
   authorName: row.author_name,
   publishedAt: row.published_at,
   updatedAt: row.updated_at,
+  subtitle: row.subtitle ?? "",
+  coverCaption: row.cover_caption ?? "",
+  coverCredit: row.cover_credit ?? "",
+  coverAlt: row.cover_alt ?? "",
+  tags: row.tags ?? [],
+  correctionNote: row.correction_note ?? null,
+  correctedAt: row.corrected_at ?? null,
 });
 
 /** Data no fuso de Catanduva: o servidor roda em UTC. */

@@ -6,6 +6,7 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { SocialIcon, socialLinks } from "@/components/social";
 import {
   getSiteSettings,
+  LIVE_MAX_HOURS,
   updateSiteSettings,
   type SiteSettings,
 } from "@/lib/site.functions";
@@ -13,8 +14,13 @@ import { YOUTUBE_CHANNEL_URL, youtubeThumb, youtubeVideoId } from "@/lib/youtube
 
 /**
  * Central do canal: o painel liga o portal aos outros meios da marca.
- * Repórteres ligam e desligam a live; canal do YouTube e AdSense ficam com administradores.
+ * Toda a equipe liga e desliga a live; canal do YouTube e AdSense ficam só com administradores.
  */
+const liveDuration = (startedAt: string) => {
+  const minutes = Math.max(1, Math.round((Date.now() - new Date(startedAt).getTime()) / 60_000));
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+};
+
 export function CentralPanel({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter();
   const fetchSettings = useServerFn(getSiteSettings);
@@ -74,12 +80,17 @@ export function CentralPanel({ isAdmin }: { isAdmin: boolean }) {
           </div>
           <span className="central-status">
             <i aria-hidden="true" />
-            {form.liveActive ? "No ar no portal" : "Fora do ar"}
+            {form.liveActive
+              ? form.liveStartedAt
+                ? `No ar há ${liveDuration(form.liveStartedAt)}`
+                : "No ar no portal"
+              : "Fora do ar"}
           </span>
         </header>
         <p className="central-note">
           Ao ligar, todas as páginas mostram a faixa AO VIVO com o link da live, e a capa troca o
-          vídeo em destaque pelo player da transmissão. Desligue quando a live terminar.
+          vídeo em destaque pelo player da transmissão. Desligue quando a live terminar; se ninguém
+          desligar, a faixa sai do ar sozinha depois de {LIVE_MAX_HOURS} horas.
         </p>
         <div className="central-fields">
           <label>
@@ -142,89 +153,101 @@ export function CentralPanel({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </section>
 
-      <section className="central-card">
-        <header>
-          <div>
-            <p className="eyebrow">Vídeos</p>
-            <h2>Canal do YouTube</h2>
-          </div>
-          <a href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noreferrer" className="central-link">
-            Abrir canal <ExternalLink size={14} />
-          </a>
-        </header>
-        <p className="central-note">
-          Os vídeos novos do canal entram sozinhos na capa e na página Vídeos e lives, em até 15
-          minutos depois de publicados no YouTube.
-        </p>
-        <label>
-          ID do canal
-          <input
-            value={form.youtubeChannelId}
-            readOnly={!isAdmin}
-            onChange={(e) => set("youtubeChannelId", e.target.value)}
-          />
-        </label>
-        {isAdmin ? (
-          <div className="central-actions">
-            <button
-              type="button"
-              className="central-secondary"
-              disabled={saving}
-              onClick={() => save(form, "Canal do YouTube atualizado.")}
-            >
-              Salvar canal
-            </button>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="central-card">
-        <header>
-          <div>
-            <p className="eyebrow">Receita</p>
-            <h2>Google AdSense</h2>
-          </div>
-          <span className={`central-status${form.adsenseEnabled ? " is-ok" : ""}`}>
-            <i aria-hidden="true" />
-            {form.adsenseEnabled ? "Anúncios ativos" : "Anúncios desligados"}
-          </span>
-        </header>
-        <p className="central-note">
-          Com os anúncios ativos, o portal carrega os anúncios automáticos do Google, publica o
-          arquivo <a href="/ads.txt" target="_blank" rel="noreferrer">ads.txt</a> e mostra o aviso
-          de cookies exigido pela LGPD.
-          {isAdmin ? null : " Só administradores alteram esta área."}
-        </p>
-        <label>
-          ID de editor
-          <input
-            value={form.adsenseClient ?? ""}
-            readOnly={!isAdmin}
-            onChange={(e) => set("adsenseClient", e.target.value)}
-            placeholder="ca-pub-0000000000000000"
-          />
-        </label>
-        {isAdmin ? (
-          <div className="central-actions">
-            <label className="central-switch">
+      {isAdmin ? (
+        <>
+          <section className="central-card">
+            <header>
+              <div>
+                <p className="eyebrow">Vídeos</p>
+                <h2>Canal do YouTube</h2>
+              </div>
+              <a
+                href={YOUTUBE_CHANNEL_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="central-link"
+              >
+                Abrir canal <ExternalLink size={14} />
+              </a>
+            </header>
+            <p className="central-note">
+              Os vídeos novos do canal entram sozinhos na capa e na página Vídeos e lives, em até 15
+              minutos depois de publicados no YouTube.
+            </p>
+            <label>
+              ID do canal
               <input
-                type="checkbox"
-                checked={form.adsenseEnabled}
-                onChange={(e) => set("adsenseEnabled", e.target.checked)}
+                value={form.youtubeChannelId}
+                readOnly={!isAdmin}
+                onChange={(e) => set("youtubeChannelId", e.target.value)}
               />
-              Exibir anúncios no portal
             </label>
-            <button
-              type="button"
-              className="central-secondary"
-              disabled={saving}
-              onClick={() => save(form, "Configuração do AdSense salva.")}
-            >
-              Salvar AdSense
-            </button>
-          </div>
-        ) : null}
-      </section>
+            {isAdmin ? (
+              <div className="central-actions">
+                <button
+                  type="button"
+                  className="central-secondary"
+                  disabled={saving}
+                  onClick={() => save(form, "Canal do YouTube atualizado.")}
+                >
+                  Salvar canal
+                </button>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="central-card">
+            <header>
+              <div>
+                <p className="eyebrow">Receita</p>
+                <h2>Google AdSense</h2>
+              </div>
+              <span className={`central-status${form.adsenseEnabled ? " is-ok" : ""}`}>
+                <i aria-hidden="true" />
+                {form.adsenseEnabled ? "Anúncios ativos" : "Anúncios desligados"}
+              </span>
+            </header>
+            <p className="central-note">
+              Com os anúncios ativos, o portal carrega os anúncios automáticos do Google, publica o
+              arquivo{" "}
+              <a href="/ads.txt" target="_blank" rel="noreferrer">
+                ads.txt
+              </a>{" "}
+              e mostra o aviso de cookies exigido pela LGPD.
+              {isAdmin ? null : " Só administradores alteram esta área."}
+            </p>
+            <label>
+              ID de editor
+              <input
+                value={form.adsenseClient ?? ""}
+                readOnly={!isAdmin}
+                onChange={(e) => set("adsenseClient", e.target.value)}
+                placeholder="ca-pub-0000000000000000"
+              />
+            </label>
+            {isAdmin ? (
+              <div className="central-actions">
+                <label className="central-switch">
+                  <input
+                    type="checkbox"
+                    checked={form.adsenseEnabled}
+                    onChange={(e) => set("adsenseEnabled", e.target.checked)}
+                  />
+                  Exibir anúncios no portal
+                </label>
+                <button
+                  type="button"
+                  className="central-secondary"
+                  disabled={saving}
+                  onClick={() => save(form, "Configuração do AdSense salva.")}
+                >
+                  Salvar AdSense
+                </button>
+              </div>
+            ) : null}
+          </section>
+        </>
+      ) : null}
 
       <section className="central-card">
         <header>

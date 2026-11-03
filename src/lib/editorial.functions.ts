@@ -4,7 +4,17 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 export type AccountStatus = "pending" | "approved" | "blocked";
-export type AppRole = "reporter" | "admin";
+export type AppRole = "reporter" | "editor" | "admin";
+
+export const roleLabel: Record<AppRole, string> = {
+  reporter: "Repórter",
+  editor: "Editor",
+  admin: "Administrador",
+};
+
+/** Papel principal da pessoa (o mais alto). */
+export const mainRole = (roles: AppRole[]): AppRole =>
+  roles.includes("admin") ? "admin" : roles.includes("editor") ? "editor" : "reporter";
 
 export type EditorialAccount = {
   userId: string;
@@ -17,6 +27,8 @@ export type EditorialAccount = {
   mfaEnrolledAt: string | null;
   roles: AppRole[];
   isAdmin: boolean;
+  /** Editor ou administrador: revisa, publica e corrige. */
+  isEditor: boolean;
   mfaVerified: boolean;
 };
 
@@ -151,7 +163,10 @@ export const sendEditorialLoginCode = createServerFn({ method: "POST" })
         .gte("created_at", new Date(Date.now() - 15 * 60_000).toISOString())
         .order("created_at", { ascending: false });
       const sent = recent ?? [];
-      if (sent[0] && Date.now() - new Date(sent[0].created_at).getTime() < CODE_RESEND_SECONDS * 1000) {
+      if (
+        sent[0] &&
+        Date.now() - new Date(sent[0].created_at).getTime() < CODE_RESEND_SECONDS * 1000
+      ) {
         const { count: usedSince } = await limiter
           .from("audit_log")
           .select("id", { count: "exact", head: true })
@@ -240,9 +255,8 @@ export const verifyEditorialLoginCode = createServerFn({ method: "POST" })
       });
 
     // Código do próprio site: vale só o último enviado, por até 1 hora, e uma única vez.
-    const { LOGIN_CODE_TTL_MINUTES, signLoginCode, sameSignature } = await import(
-      "@/lib/login-code.server"
-    );
+    const { LOGIN_CODE_TTL_MINUTES, signLoginCode, sameSignature } =
+      await import("@/lib/login-code.server");
     const { data: lastSent } = await supabaseAdmin
       .from("audit_log")
       .select("created_at, detail")
@@ -267,7 +281,9 @@ export const verifyEditorialLoginCode = createServerFn({ method: "POST" })
       const typed = await signLoginCode(context.userId, data.code);
       if ((usedCount ?? 0) > 0 || !sameSignature(typed, expected)) {
         await recordFailure();
-        throw new Error("Código incorreto ou já usado. Confira o último e-mail ou peça um novo código.");
+        throw new Error(
+          "Código incorreto ou já usado. Confira o último e-mail ou peça um novo código.",
+        );
       }
     } else {
       // Reserva: código enviado pelo e-mail padrão do sistema de login.
@@ -335,6 +351,7 @@ export const getMyEditorialAccount = createServerFn({ method: "GET" })
       mfaEnrolledAt: profile.mfa_enrolled_at,
       roles,
       isAdmin: roles.includes("admin"),
+      isEditor: roles.includes("admin") || roles.includes("editor"),
       mfaVerified: await sessionIsVerified(supabase),
     };
   });
@@ -472,7 +489,9 @@ export const setUserStatus = createServerFn({ method: "POST" })
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { userId: string; role: AppRole }) =>
-    z.object({ userId: z.string().uuid(), role: z.enum(["reporter", "admin"]) }).parse(input),
+    z
+      .object({ userId: z.string().uuid(), role: z.enum(["reporter", "editor", "admin"]) })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertApprovedAdmin(context);

@@ -93,14 +93,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:locale", content: "pt_BR" },
       {
         property: "og:image",
-        content: "https://www.canaltransforma.com.br/brand/og-canal-transforma.png",
+        content: "https://canaltransforma.com.br/brand/og-canal-transforma.png",
       },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:image",
-        content: "https://www.canaltransforma.com.br/brand/og-canal-transforma.png",
+        content: "https://canaltransforma.com.br/brand/og-canal-transforma.png",
       },
       ...(loaderData?.adsenseClient
         ? [{ name: "google-adsense-account", content: loaderData.adsenseClient }]
@@ -137,30 +137,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@graph": [
             {
               "@type": "WebSite",
-              "@id": "https://www.canaltransforma.com.br/#website",
+              "@id": "https://canaltransforma.com.br/#website",
               name: "Canal Transforma",
-              url: "https://www.canaltransforma.com.br",
+              url: "https://canaltransforma.com.br",
               inLanguage: "pt-BR",
               description:
                 "Notícias de Catanduva com apuração e contexto: cidade, política, serviços e esportes.",
-              publisher: { "@id": "https://www.canaltransforma.com.br/#organization" },
+              publisher: { "@id": "https://canaltransforma.com.br/#organization" },
               potentialAction: {
                 "@type": "SearchAction",
                 target: {
                   "@type": "EntryPoint",
-                  urlTemplate: "https://www.canaltransforma.com.br/busca?q={search_term_string}",
+                  urlTemplate: "https://canaltransforma.com.br/busca?q={search_term_string}",
                 },
                 "query-input": "required name=search_term_string",
               },
             },
             {
               "@type": "NewsMediaOrganization",
-              "@id": "https://www.canaltransforma.com.br/#organization",
+              "@id": "https://canaltransforma.com.br/#organization",
               name: "Canal Transforma",
-              url: "https://www.canaltransforma.com.br",
+              url: "https://canaltransforma.com.br",
               logo: {
                 "@type": "ImageObject",
-                url: "https://www.canaltransforma.com.br/brand/icone-app-512.png",
+                url: "https://canaltransforma.com.br/brand/icone-app-512.png",
               },
               areaServed: "Catanduva, SP, Brasil",
               sameAs: socialLinks.map((s) => s.href),

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/videos")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://www.canaltransforma.com.br/videos" }],
+    links: [{ rel: "canonical", href: "https://canaltransforma.com.br/videos" }],
   }),
   component: VideosPage,
 });

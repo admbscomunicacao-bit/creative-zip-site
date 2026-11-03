@@ -10,6 +10,8 @@ export type SiteSettings = {
   liveActive: boolean;
   liveUrl: string | null;
   liveTitle: string;
+  /** Quando a live foi ligada (para mostrar há quanto tempo está no ar). */
+  liveStartedAt: string | null;
   youtubeChannelId: string;
   adsenseClient: string | null;
   adsenseEnabled: boolean;
@@ -19,6 +21,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   liveActive: false,
   liveUrl: null,
   liveTitle: "",
+  liveStartedAt: null,
   youtubeChannelId: "UC0-Yl4Ibkys2cKjuF6uJrmg",
   adsenseClient: null,
   adsenseEnabled: false,
@@ -28,18 +31,26 @@ type SettingsRow = {
   live_active: boolean;
   live_url: string | null;
   live_title: string;
+  live_started_at?: string | null;
   youtube_channel_id: string;
   adsense_client: string | null;
   adsense_enabled: boolean;
 };
 
 const SETTINGS_SELECT =
-  "live_active,live_url,live_title,youtube_channel_id,adsense_client,adsense_enabled";
+  "live_active,live_url,live_title,live_started_at,youtube_channel_id,adsense_client,adsense_enabled";
+
+/** Depois deste tempo a faixa AO VIVO some sozinha, mesmo se ninguém desligar. */
+export const LIVE_MAX_HOURS = 6;
+
+const liveExpired = (startedAt: string | null | undefined) =>
+  Boolean(startedAt) && Date.now() - new Date(startedAt!).getTime() > LIVE_MAX_HOURS * 3_600_000;
 
 const toSettings = (row: SettingsRow): SiteSettings => ({
-  liveActive: row.live_active,
+  liveActive: row.live_active && !liveExpired(row.live_started_at),
   liveUrl: row.live_url,
   liveTitle: row.live_title ?? "",
+  liveStartedAt: row.live_started_at ?? null,
   youtubeChannelId: row.youtube_channel_id || DEFAULT_SETTINGS.youtubeChannelId,
   adsenseClient: row.adsense_client,
   adsenseEnabled: row.adsense_enabled,

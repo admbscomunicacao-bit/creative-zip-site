@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -21,7 +22,9 @@ export const Route = createFileRoute("/noticias-do-dia")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: `${SITE_URL}/noticias-do-dia` },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/noticias-do-dia` }],
   }),
   component: DailyNews,
 });

@@ -3,7 +3,7 @@ import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { sections } from "@/data/stories";
 
-const BASE_URL = "https://www.canaltransforma.com.br";
+const BASE_URL = "https://canaltransforma.com.br";
 
 interface SitemapEntry {
   path: string;

@@ -2,6 +2,9 @@
  * Assinaturas aprovadas no manual de marca 2026 (public/brand).
  * A versão acompanha o fundo: não recolorir nem separar os elementos.
  */
+/** Endereço oficial do portal (sem www: o www redireciona para cá). */
+export const SITE_URL = "https://canaltransforma.com.br";
+
 export const brand = {
   /** Faixas e "Canal" em creme, "Transforma" em amarelo. */
   logoOnBlue: "/brand/logo-sobre-azul.webp",

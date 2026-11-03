@@ -86,6 +86,11 @@ function secureResponse(request: Request, response: Response): Response {
     headers.set("Cache-Control", "no-store, max-age=0");
     headers.set("Pragma", "no-cache");
   }
+  // Área da redação e rotas internas nunca entram no Google.
+  const path = new URL(request.url).pathname;
+  if (path.startsWith("/editorial") || path.startsWith("/lovable/")) {
+    headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
@@ -127,6 +132,12 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     ensurePublicSupabaseEnv(env);
+    // Endereço oficial sem www: redirecionamento permanente (301) para o Google.
+    const incoming = new URL(request.url);
+    if (incoming.hostname === "www.canaltransforma.com.br") {
+      incoming.hostname = "canaltransforma.com.br";
+      return Response.redirect(incoming.toString(), 301);
+    }
     if (["TRACE", "CONNECT"].includes(request.method)) {
       return secureResponse(request, new Response("Método não permitido.", { status: 405 }));
     }

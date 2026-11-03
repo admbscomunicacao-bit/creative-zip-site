@@ -10,6 +10,8 @@ import {
   listEditorialUsers,
   setUserRole,
   setUserStatus,
+  mainRole,
+  roleLabel,
   type AccountStatus,
   type AppRole,
 } from "@/lib/editorial.functions";
@@ -45,7 +47,9 @@ const statusLabel: Record<AccountStatus, string> = {
 };
 
 const formatDate = (value: string | null) =>
-  value ? new Date(value).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" }) : "Não informado";
+  value
+    ? new Date(value).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" })
+    : "Não informado";
 
 function UsersAdmin() {
   const { data: account, isLoading } = useRequireEditorialAccount({ requireEditorialAccess: true });
@@ -74,10 +78,7 @@ function UsersAdmin() {
   });
 
   const rows = users.data ?? [];
-  const selected = useMemo(
-    () => rows.find((r) => r.id === selectedId) ?? null,
-    [rows, selectedId],
-  );
+  const selected = useMemo(() => rows.find((r) => r.id === selectedId) ?? null, [rows, selectedId]);
 
   const select = (id: string | undefined) =>
     void navigate({ to: "/editorial/usuarios", search: { u: id }, replace: true });
@@ -150,7 +151,7 @@ function UsersAdmin() {
           </div>
           <div>
             <dt>Papel</dt>
-            <dd>{selected.roles.includes("admin") ? "Administrador" : "Repórter"}</dd>
+            <dd>{roleLabel[mainRole(selected.roles)]}</dd>
           </div>
           <div>
             <dt>Cadastro criado em</dt>
@@ -167,13 +168,19 @@ function UsersAdmin() {
                 type="button"
                 className="editorial-secondary"
                 disabled={busy}
-                onClick={() => act(() => changeStatus({ data: { userId: selected.id, status: s } }))}
+                onClick={() =>
+                  act(() => changeStatus({ data: { userId: selected.id, status: s } }))
+                }
               >
-                {s === "approved" ? "Aprovar conta" : s === "blocked" ? "Bloquear" : "Deixar pendente"}
+                {s === "approved"
+                  ? "Aprovar conta"
+                  : s === "blocked"
+                    ? "Bloquear"
+                    : "Deixar pendente"}
               </button>
             ))}
-          {(["reporter", "admin"] as AppRole[])
-            .filter((r) => !selected.roles.includes(r))
+          {(["reporter", "editor", "admin"] as AppRole[])
+            .filter((r) => r !== mainRole(selected.roles))
             .map((r) => (
               <button
                 key={r}
@@ -182,7 +189,7 @@ function UsersAdmin() {
                 disabled={busy}
                 onClick={() => act(() => changeRole({ data: { userId: selected.id, role: r } }))}
               >
-                Tornar {r === "admin" ? "administrador" : "repórter"}
+                Tornar {roleLabel[r].toLowerCase()}
               </button>
             ))}
           {selected.id !== account.userId ? (
@@ -240,8 +247,7 @@ function UsersAdmin() {
             <button type="button" key={u.id} onClick={() => select(u.id)}>
               <b>{u.fullName || u.email}</b>
               <span>
-                {u.roles.includes("admin") ? "Administrador" : "Repórter"} ·{" "}
-                {statusLabel[u.status]} · {u.email}
+                {roleLabel[mainRole(u.roles)]} · {statusLabel[u.status]} · {u.email}
               </span>
               <ArrowRight size={20} />
             </button>

@@ -3,7 +3,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NewsCard } from "@/components/StoryCard";
 import { ShareBar } from "@/components/ShareBar";
-import { YouTubePlayer } from "@/components/YouTubePlayer";
+import { ArticleView } from "@/components/ArticleView";
 import { sections, type Section, type SectionColor } from "@/data/stories";
 import {
   formatStoryDate,
@@ -46,13 +46,20 @@ export const Route = createFileRoute("/noticia/$slug")({
         image: article.coverUrl ?? (videoId ? youtubeThumb(videoId) : ""),
       },
       bodyHtml: article.bodyHtml,
+      subtitle: article.subtitle,
+      coverAlt: article.coverAlt,
+      coverCaption: article.coverCaption,
+      coverCredit: article.coverCredit,
+      tags: article.tags,
+      correctionNote: article.correctionNote,
+      correctedLabel: article.correctedAt ? formatStoryDate(article.correctedAt) : "",
       author: article.authorName || "Canal Transforma",
       publishedAtIso: article.publishedAt ? new Date(article.publishedAt).toISOString() : null,
     };
   },
   head: ({ params, loaderData }) => {
     const story = loaderData?.story;
-    const url = `https://www.canaltransforma.com.br/noticia/${params.slug}`;
+    const url = `https://canaltransforma.com.br/noticia/${params.slug}`;
     const title = story ? `${story.title} | Canal Transforma` : "Reportagem | Canal Transforma";
     const description = story?.summary ?? "Reportagem do Canal Transforma.";
     return {
@@ -71,14 +78,7 @@ export const Route = createFileRoute("/noticia/$slug")({
           : []),
         { property: "og:url", content: url },
       ],
-      links: [
-        { rel: "canonical", href: url },
-        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@600;700&family=Caveat:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;600&family=Roboto+Slab:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap",
-        },
-      ],
+      links: [{ rel: "canonical", href: url }],
       scripts: story
         ? [
             {
@@ -92,6 +92,7 @@ export const Route = createFileRoute("/noticia/$slug")({
                 url,
                 inLanguage: "pt-BR",
                 articleSection: story.section,
+                ...(loaderData?.tags?.length ? { keywords: loaderData.tags.join(", ") } : {}),
                 ...(story.image ? { image: [story.image] } : {}),
                 ...(loaderData?.publishedAtIso
                   ? {
@@ -108,7 +109,7 @@ export const Route = createFileRoute("/noticia/$slug")({
                   name: "Canal Transforma",
                   logo: {
                     "@type": "ImageObject",
-                    url: "https://www.canaltransforma.com.br/brand/icone-app-512.png",
+                    url: "https://canaltransforma.com.br/brand/icone-app-512.png",
                   },
                 },
               }),
@@ -121,48 +122,47 @@ export const Route = createFileRoute("/noticia/$slug")({
 });
 
 function Article() {
-  const { story, bodyHtml, author, related, videoId, updatedLabel } = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const { story, bodyHtml, author, related, videoId, updatedLabel } = data;
   const sectionSlug = sections.find((s) => s.name === story.section)?.slug ?? "cidade";
-  const url = `https://www.canaltransforma.com.br/noticia/${story.slug}`;
+  const url = `https://canaltransforma.com.br/noticia/${story.slug}`;
 
   return (
     <>
       <SiteHeader />
-      <article className="article-shell">
-        <Link to="/editoria/$section" params={{ section: sectionSlug }} className="back-link">
-          ← Voltar para {story.section}
-        </Link>
-        <p className={`story-section section-${story.color}`}>{story.section}</p>
-        <h1>{story.title}</h1>
-        <p className="article-summary">{story.summary}</p>
-        {videoId ? (
-          <div className="article-video">
-            <YouTubePlayer id={videoId} title={story.title} />
+      <ArticleView
+        backLink={
+          <Link to="/editoria/$section" params={{ section: sectionSlug }} className="back-link">
+            ← Voltar para {story.section}
+          </Link>
+        }
+        data={{
+          section: story.section,
+          color: story.color,
+          title: story.title,
+          subtitle: data.subtitle,
+          summary: story.summary,
+          coverUrl: videoId ? null : story.image || null,
+          coverAlt: data.coverAlt,
+          coverCaption: data.coverCaption,
+          coverCredit: data.coverCredit,
+          videoId,
+          author,
+          dateLabel: `Publicado em ${story.date}`,
+          updatedLabel,
+          bodyHtml,
+          tags: data.tags,
+          correctionNote: data.correctionNote,
+          correctedLabel: data.correctedLabel,
+        }}
+        top={<ShareBar url={url} title={story.title} />}
+        bottom={
+          <div className="article-share-end">
+            <p>Achou útil? Mande para quem também precisa saber.</p>
+            <ShareBar url={url} title={story.title} />
           </div>
-        ) : story.image ? (
-          <div className={`article-art ${story.color}`}>
-            <img src={story.image} alt={`Capa de ${story.title}`} />
-          </div>
-        ) : null}
-        <div className="article-meta">
-          <span>{author}</span>
-          <div>
-            <time>Publicado em {story.date}</time>
-            {updatedLabel ? <time>Atualizado em {updatedLabel}</time> : null}
-          </div>
-        </div>
-        <ShareBar url={url} title={story.title} />
-        <div className="article-body">
-          <div
-            className="story-text-block article-rich"
-            dangerouslySetInnerHTML={{ __html: bodyHtml }}
-          />
-        </div>
-        <div className="article-share-end">
-          <p>Achou útil? Mande para quem também precisa saber.</p>
-          <ShareBar url={url} title={story.title} />
-        </div>
-      </article>
+        }
+      />
       {related.length > 0 && (
         <div className="home-shell">
           <section className="section-header">

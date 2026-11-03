@@ -16,6 +16,17 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          cover_alt: string
+          cover_caption: string
+          cover_credit: string
+          corrected_at: string | null
+          correction_note: string | null
+          published_by: string | null
+          review_note: string | null
+          reviewed_by: string | null
+          submitted_at: string | null
+          subtitle: string
+          tags: string[]
           author_id: string
           author_name: string
           body_html: string
@@ -33,6 +44,17 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string | null
+          subtitle?: string
+          tags?: string[]
           author_id: string
           author_name?: string
           body_html?: string
@@ -50,6 +72,17 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string | null
+          subtitle?: string
+          tags?: string[]
           author_id?: string
           author_name?: string
           body_html?: string
@@ -165,6 +198,7 @@ export type Database = {
           id: number
           live_active: boolean
           live_title: string
+          live_started_at: string | null
           live_url: string | null
           updated_at: string
           updated_by: string | null
@@ -176,6 +210,7 @@ export type Database = {
           id?: number
           live_active?: boolean
           live_title?: string
+          live_started_at?: string | null
           live_url?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -187,6 +222,7 @@ export type Database = {
           id?: number
           live_active?: boolean
           live_title?: string
+          live_started_at?: string | null
           live_url?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -225,6 +261,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["account_status"]
       }
       can_use_editorial: { Args: { _user_id: string }; Returns: boolean }
+      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -237,8 +274,8 @@ export type Database = {
     }
     Enums: {
       account_status: "pending" | "approved" | "blocked"
-      app_role: "reporter" | "admin"
-      article_status: "draft" | "published"
+      app_role: "reporter" | "admin" | "editor"
+      article_status: "draft" | "review" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -367,8 +404,8 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ["pending", "approved", "blocked"],
-      app_role: ["reporter", "admin"],
-      article_status: ["draft", "published"],
+      app_role: ["reporter", "admin", "editor"],
+      article_status: ["draft", "review", "published"],
     },
   },
 } as const

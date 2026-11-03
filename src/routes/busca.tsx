@@ -18,6 +18,8 @@ export const Route = createFileRoute("/busca")({
   head: () => ({
     meta: [
       { title: "Pesquisa | Canal Transforma" },
+      // Resultado de busca não deve virar página no Google.
+      { name: "robots", content: "noindex, follow" },
       {
         name: "description",
         content: "Pesquise reportagens do Canal Transforma sobre Catanduva e região.",

@@ -11,11 +11,14 @@ const ALLOWED_TAGS = new Set([
   "h3",
   "i",
   "img",
+  "li",
+  "ol",
   "p",
   "source",
   "span",
   "strong",
   "u",
+  "ul",
   "video",
 ]);
 
@@ -46,8 +49,6 @@ function safeStyle(value: string): string | null {
 
     const allowed =
       (name === "color" && /^(#[0-9a-f]{3,8}|rgba?\([0-9.,%\s]+\)|hsla?\([0-9.,%\s]+\)|[a-z]+)$/i.test(raw)) ||
-      (name === "font-size" && /^\d{1,3}(?:px|pt|em|rem|%)$/i.test(raw)) ||
-      (name === "font-family" && /^[a-z0-9\s,'"-]{1,120}$/i.test(raw)) ||
       (name === "font-weight" && /^(normal|bold|[1-9]00)$/i.test(raw)) ||
       (name === "font-style" && /^(normal|italic)$/i.test(raw)) ||
       (name === "text-decoration" && /^(none|underline)$/i.test(raw)) ||

@@ -4,80 +4,83 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignCenter,
-  AlignJustify,
   AlignLeft,
-  AlignRight,
   ArrowRight,
+  Eye,
   Link2,
+  List,
+  ListOrdered,
   Loader2,
   Trash2,
+  X,
 } from "lucide-react";
 import { editorialSignOut, useRequireEditorialAccount } from "@/components/editorial-shell";
 import { brand } from "@/lib/brand";
 import { sections, type Section } from "@/data/stories";
 import {
   deleteArticle,
+  isScheduled,
   listEditorialArticles,
   listNewsroomReporters,
   saveArticle,
   type Article,
   type ArticleInput,
+  type ArticleStatus,
 } from "@/lib/articles.functions";
+import { roleLabel, type EditorialAccount } from "@/lib/editorial.functions";
 import { pickFiles, uploadArticleMedia } from "@/lib/article-media";
+import { sanitizeArticleHtml } from "@/lib/article-html";
 import { CentralPanel } from "@/components/CentralPanel";
+import { ArticleView } from "@/components/ArticleView";
 import { youtubeThumb, youtubeVideoId } from "@/lib/youtube";
 
 export const Route = createFileRoute("/editorial/redacao")({
   head: () => ({
     meta: [
       { title: "Painel da redação | Canal Transforma" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
-        content:
-          "Painel editorial do Canal Transforma: biblioteca de reportagens, rascunhos, repórteres e editor de matéria.",
-      },
-      { property: "og:title", content: "Painel da redação | Canal Transforma" },
-      {
-        property: "og:description",
         content: "Área interna da equipe editorial do Canal Transforma.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@600;700&family=Caveat:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;600&family=Roboto+Slab:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap",
       },
     ],
   }),
   component: Newsroom,
 });
 
-type Tab = "reports" | "drafts" | "reporters" | "central";
+type Tab = "published" | "review" | "drafts" | "reporters" | "central";
 
-const FONTS = [
-  { label: "Inter", value: "Inter, sans-serif" },
-  { label: "Montserrat", value: "Montserrat, sans-serif" },
-  { label: "Caveat", value: "Caveat, cursive" },
-  { label: "Lora", value: "Lora, serif" },
-  { label: "Merriweather", value: "Merriweather, serif" },
-  { label: "Playfair Display", value: "'Playfair Display', serif" },
-  { label: "Oswald", value: "Oswald, sans-serif" },
-  { label: "Roboto Slab", value: "'Roboto Slab', serif" },
-  { label: "Source Code Pro", value: "'Source Code Pro', monospace" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Arial", value: "Arial, Helvetica, sans-serif" },
-];
-
-const SIZES = ["14", "16", "18", "20", "24", "28", "34", "44"];
+const TITLE_IDEAL = 70;
+const SUMMARY_IDEAL = 160;
 
 const formatDate = (value: string | null) =>
   value
-    ? new Date(value).toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })
+    ? new Date(value).toLocaleString("pt-BR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "America/Sao_Paulo",
+      })
     : "Sem data";
+
+/** Pode editar: editor/admin sempre; repórter só a própria matéria ainda não publicada. */
+const canEdit = (account: EditorialAccount, article: Partial<Article>) =>
+  account.isEditor ||
+  !article.id ||
+  (article.authorId === account.userId && article.status !== "published");
+
+/** Pode excluir: admin sempre; repórter/editor só a própria ainda não publicada. */
+const canDelete = (account: EditorialAccount, article: Partial<Article>) =>
+  Boolean(article.id) &&
+  (account.isAdmin || (article.authorId === account.userId && article.status !== "published"));
+
+const statusLabel = (a: Pick<Article, "status" | "publishedAt">) =>
+  isScheduled(a)
+    ? `agendada para ${formatDate(a.publishedAt)}`
+    : a.status === "published"
+      ? "publicada"
+      : a.status === "review"
+        ? "em revisão"
+        : "rascunho";
 
 function Newsroom() {
   const navigate = useNavigate();
@@ -97,23 +100,43 @@ function Newsroom() {
   const reportersQuery = useQuery({
     queryKey: ["editorial-reporters"],
     queryFn: () => fetchReporters(),
-    enabled: Boolean(account && account.status === "approved"),
+    enabled: Boolean(account && account.status === "approved" && account.isEditor),
   });
 
-  const [tab, setTab] = useState<Tab>("reports");
+  const [tab, setTab] = useState<Tab>("published");
   const [query, setQuery] = useState("");
+  const [sectionFilter, setSectionFilter] = useState("");
+  const [mineOnly, setMineOnly] = useState(false);
   const [editing, setEditing] = useState<Partial<Article> | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<Article | null>(null);
 
   const articles = articlesQuery.data ?? [];
-  const published = useMemo(() => articles.filter((a) => a.status === "published"), [articles]);
-  const drafts = useMemo(() => articles.filter((a) => a.status === "draft"), [articles]);
+  const byStatus = useMemo(
+    () => ({
+      published: articles.filter((a) => a.status === "published"),
+      review: articles.filter((a) => a.status === "review"),
+      drafts: articles.filter((a) => a.status === "draft"),
+    }),
+    [articles],
+  );
   const shown = useMemo(() => {
-    const base = tab === "reports" ? published : tab === "drafts" ? drafts : [];
+    const base =
+      tab === "published"
+        ? byStatus.published
+        : tab === "review"
+          ? byStatus.review
+          : tab === "drafts"
+            ? byStatus.drafts
+            : [];
     const q = query.trim().toLowerCase();
-    if (!q) return base;
-    return base.filter((a) => `${a.title} ${a.summary}`.toLowerCase().includes(q));
-  }, [tab, query, published, drafts]);
+    return base.filter(
+      (a) =>
+        (!q || `${a.title} ${a.summary} ${a.authorName}`.toLowerCase().includes(q)) &&
+        (!sectionFilter || a.section === sectionFilter) &&
+        (!mineOnly || a.authorId === account?.userId),
+    );
+  }, [tab, query, sectionFilter, mineOnly, byStatus, account?.userId]);
 
   const saveMutation = useMutation({
     mutationFn: (input: { data: ArticleInput }) => persistArticle(input),
@@ -121,7 +144,15 @@ function Newsroom() {
       void queryClient.invalidateQueries({ queryKey: ["editorial-articles"] });
       setEditing(saved);
       setMessage(
-        saved.status === "published" ? "Reportagem publicada com sucesso." : "Rascunho salvo.",
+        isScheduled(saved)
+          ? `Matéria agendada para ${formatDate(saved.publishedAt)}.`
+          : saved.status === "published"
+            ? "Matéria publicada."
+            : saved.status === "review"
+              ? "Matéria enviada para revisão. Um editor vai revisar e publicar."
+              : saved.reviewNote && saved.authorId !== account?.userId
+                ? "Matéria devolvida ao repórter com a sua observação."
+                : "Rascunho salvo.",
       );
     },
     onError: (error: Error) => setMessage(error.message),
@@ -132,9 +163,13 @@ function Newsroom() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["editorial-articles"] });
       setEditing(null);
-      setMessage("Reportagem excluída.");
+      setConfirming(null);
+      setMessage("Matéria excluída.");
     },
-    onError: (error: Error) => setMessage(error.message),
+    onError: (error: Error) => {
+      setConfirming(null);
+      setMessage(error.message);
+    },
   });
 
   if (isLoading || !account) {
@@ -145,31 +180,73 @@ function Newsroom() {
     );
   }
 
+  const confirmDialog = confirming ? (
+    <ConfirmDialog
+      title="Excluir matéria?"
+      text={`“${confirming.title || "Sem título"}” será apagada definitivamente.`}
+      confirmLabel={deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+      onCancel={() => setConfirming(null)}
+      onConfirm={() => deleteMutation.mutate(confirming.id)}
+    />
+  ) : null;
+
   if (editing) {
     return (
-      <ArticleEditor
-        key={editing.id ?? "new"}
-        article={editing}
-        authorName={account.fullName || "Canal Transforma"}
-        saving={saveMutation.isPending}
-        deleting={deleteMutation.isPending}
-        message={message}
-        onClose={() => {
-          setEditing(null);
-          setMessage(null);
-        }}
-        onSave={(input) => saveMutation.mutate({ data: input })}
-        onDelete={(id) => {
-          if (confirm("Excluir esta reportagem definitivamente?")) deleteMutation.mutate(id);
-        }}
-      />
+      <>
+        <ArticleEditor
+          key={editing.id ?? "new"}
+          article={editing}
+          account={account}
+          saving={saveMutation.isPending}
+          message={message}
+          onClose={() => {
+            setEditing(null);
+            setMessage(null);
+          }}
+          onSave={(input) => saveMutation.mutate({ data: input })}
+          onDelete={() => setConfirming(editing as Article)}
+        />
+        {confirmDialog}
+      </>
     );
   }
+
+  const tabs: { id: Tab; label: string; count?: number | undefined; show: boolean }[] = [
+    { id: "published", label: "Publicadas", count: byStatus.published.length, show: true },
+    {
+      id: "review",
+      label: account.isEditor ? "Para revisar" : "Em revisão",
+      count: byStatus.review.length,
+      show: true,
+    },
+    { id: "drafts", label: "Rascunhos", count: byStatus.drafts.length, show: true },
+    {
+      id: "reporters",
+      label: "Equipe",
+      count: reportersQuery.data?.length,
+      show: account.isEditor,
+    },
+    { id: "central", label: "Central do canal", show: true },
+  ];
+
+  const titles: Record<Tab, string> = {
+    published: "Matérias publicadas",
+    review: account.isEditor ? "Aguardando sua revisão" : "Enviadas para revisão",
+    drafts: account.isEditor ? "Rascunhos da redação" : "Meus rascunhos",
+    reporters: "Equipe da redação",
+    central: "Central do canal",
+  };
 
   return (
     <main className="admin-page">
       <aside className="admin-side">
         <img src={brand.logoOnCream} alt="Canal Transforma" width={720} height={186} />
+        <p className="admin-whoami">
+          {account.fullName || account.email}
+          <span>
+            {roleLabel[account.isAdmin ? "admin" : account.isEditor ? "editor" : "reporter"]}
+          </span>
+        </p>
         <button
           type="button"
           className="new-report"
@@ -183,40 +260,32 @@ function Newsroom() {
               bodyHtml: "",
               coverUrl: null,
               videoUrl: null,
+              tags: [],
             });
           }}
         >
-          + Nova reportagem
+          + Nova matéria
         </button>
         <nav>
-          <button
-            type="button"
-            className={tab === "reports" ? "active" : ""}
-            onClick={() => setTab("reports")}
-          >
-            Reportagens <span>{published.length}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === "drafts" ? "active" : ""}
-            onClick={() => setTab("drafts")}
-          >
-            Rascunhos <span>{drafts.length}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === "reporters" ? "active" : ""}
-            onClick={() => setTab("reporters")}
-          >
-            Repórteres <span>{reportersQuery.data?.length ?? 0}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === "central" ? "active" : ""}
-            onClick={() => setTab("central")}
-          >
-            Central do canal <span className="tab-dot" aria-hidden="true" />
-          </button>
+          {tabs
+            .filter((t) => t.show)
+            .map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={tab === t.id ? "active" : ""}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+                {t.count !== undefined ? (
+                  <span
+                    className={t.id === "review" && account.isEditor && t.count ? "is-alert" : ""}
+                  >
+                    {t.count}
+                  </span>
+                ) : null}
+              </button>
+            ))}
         </nav>
         <div className="admin-side-links">
           <Link to="/editorial/perfil">Meu perfil</Link>
@@ -241,24 +310,38 @@ function Newsroom() {
       <section className="admin-library">
         <div className="admin-library-head">
           <div>
-            <p className="eyebrow">Biblioteca editorial</p>
-            <h1>
-              {tab === "reports"
-                ? "Reportagens publicadas"
-                : tab === "drafts"
-                  ? "Rascunhos"
-                  : tab === "central"
-                    ? "Central do canal"
-                    : "Repórteres"}
-            </h1>
+            <p className="eyebrow">Redação</p>
+            <h1>{titles[tab]}</h1>
           </div>
-          {tab === "reports" || tab === "drafts" ? (
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar reportagem"
-              aria-label="Buscar reportagem"
-            />
+          {tab === "published" || tab === "review" || tab === "drafts" ? (
+            <div className="admin-filters">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por título ou autor"
+                aria-label="Buscar matéria"
+              />
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                aria-label="Filtrar por editoria"
+              >
+                <option value="">Todas as editorias</option>
+                {sections.map((s) => (
+                  <option key={s.slug} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <label className="admin-check">
+                <input
+                  type="checkbox"
+                  checked={mineOnly}
+                  onChange={(e) => setMineOnly(e.target.checked)}
+                />
+                Só as minhas
+              </label>
+            </div>
           ) : null}
         </div>
 
@@ -268,13 +351,14 @@ function Newsroom() {
           <CentralPanel isAdmin={account.isAdmin} />
         ) : tab === "reporters" ? (
           reportersQuery.isLoading ? (
-            <p>Carregando repórteres...</p>
+            <p>Carregando equipe...</p>
           ) : (
             <div className="reporter-list">
               {(reportersQuery.data ?? []).map((reporter) => (
                 <button
                   type="button"
                   key={reporter.id}
+                  disabled={!account.isAdmin}
                   onClick={() => {
                     if (account.isAdmin)
                       void navigate({ to: "/editorial/usuarios", search: { u: reporter.id } });
@@ -282,112 +366,310 @@ function Newsroom() {
                 >
                   <b>{reporter.fullName}</b>
                   <span>
-                    {reporter.isAdmin ? "Administrador" : "Repórter"} ·{" "}
+                    {roleLabel[reporter.role]} ·{" "}
                     {reporter.status === "approved"
                       ? "aprovado"
                       : reporter.status === "pending"
                         ? "aguardando aprovação"
                         : "bloqueado"}{" "}
-                    · {reporter.articles} reportagem(ns)
+                    · {reporter.articles} matéria(s)
                   </span>
-                  <ArrowRight size={20} />
+                  {account.isAdmin ? <ArrowRight size={20} /> : null}
                 </button>
               ))}
-              {account.isAdmin ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void navigate({ to: "/editorial/usuarios", search: { u: undefined } })
-                  }
-                >
-                  <b>Administrar cadastros</b>
-                  <span>Aprovar, bloquear e definir permissões</span>
-                  <ArrowRight size={20} />
-                </button>
-              ) : null}
             </div>
           )
         ) : articlesQuery.isLoading ? (
-          <p>Carregando reportagens...</p>
+          <p>Carregando matérias...</p>
         ) : articlesQuery.error ? (
-          <p>Não foi possível carregar a biblioteca: {(articlesQuery.error as Error).message}</p>
+          <p>Não foi possível carregar as matérias: {(articlesQuery.error as Error).message}</p>
         ) : (
           <div className="report-list">
-            {shown.map((article) => (
-              <button
-                type="button"
-                key={article.id}
-                className={`report-row ${article.color}`}
-                onClick={() => {
-                  setMessage(null);
-                  setEditing(article);
-                }}
-              >
-                <span>
-                  {article.section} · {article.status === "published" ? "publicada" : "rascunho"}
-                </span>
-                <div>
-                  <b>{article.title || "Sem título"}</b>
-                  <p>{article.summary || "Sem resumo"}</p>
-                </div>
-                <time>{formatDate(article.publishedAt ?? article.updatedAt)}</time>
-                <ArrowRight size={20} />
-              </button>
-            ))}
-            {!shown.length ? <p>Nenhuma reportagem encontrada.</p> : null}
+            {shown.map((article) => {
+              const editable = canEdit(account, article);
+              return (
+                <button
+                  type="button"
+                  key={article.id}
+                  className={`report-row ${article.color}`}
+                  onClick={() => {
+                    setMessage(null);
+                    setEditing(article);
+                  }}
+                >
+                  {article.coverUrl || article.videoUrl ? (
+                    <img
+                      className="report-thumb"
+                      src={
+                        article.coverUrl ??
+                        youtubeThumb(youtubeVideoId(article.videoUrl ?? "") ?? "")
+                      }
+                      alt=""
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="report-thumb is-empty" aria-hidden="true" />
+                  )}
+                  <div>
+                    <span className="report-kicker">
+                      {article.section} · {statusLabel(article)}
+                      {editable ? "" : " · só leitura"}
+                    </span>
+                    <b>{article.title || "Sem título"}</b>
+                    <p>
+                      {article.authorName || "Sem autor"}
+                      {article.status === "review" && article.submittedAt
+                        ? ` · enviada em ${formatDate(article.submittedAt)}`
+                        : ""}
+                      {article.status === "draft" && article.reviewNote
+                        ? " · devolvida com observações"
+                        : ""}
+                    </p>
+                  </div>
+                  <time>{formatDate(article.publishedAt ?? article.updatedAt)}</time>
+                  <ArrowRight size={20} />
+                </button>
+              );
+            })}
+            {!shown.length ? (
+              <p className="admin-empty">
+                {tab === "review"
+                  ? account.isEditor
+                    ? "Nenhuma matéria esperando revisão."
+                    : "Você não tem matérias em revisão."
+                  : "Nenhuma matéria encontrada."}
+              </p>
+            ) : null}
           </div>
         )}
       </section>
+      {confirmDialog}
     </main>
   );
 }
 
+function ConfirmDialog({
+  title,
+  text,
+  confirmLabel,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  text: string;
+  confirmLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="link-dialog-backdrop" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="link-dialog">
+        <h3>{title}</h3>
+        <p>{text}</p>
+        <div className="link-dialog-actions">
+          <button type="button" className="ghost" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button type="button" className="save danger" onClick={onConfirm}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type EditorInput = Omit<ArticleInput, "status"> & { status: ArticleStatus };
+
+/** Valor para <input type="datetime-local"> no horário de Brasília. */
+const toLocalInput = (iso: string | null | undefined) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+  return parts.replace(" ", "T");
+};
+/** Brasília não tem horário de verão desde 2019: UTC−3. */
+const fromLocalInput = (value: string) =>
+  value ? new Date(`${value}:00-03:00`).toISOString() : null;
+
 function ArticleEditor({
   article,
-  authorName,
+  account,
   saving,
-  deleting,
   message,
   onClose,
   onSave,
   onDelete,
 }: {
   article: Partial<Article>;
-  authorName: string;
+  account: EditorialAccount;
   saving: boolean;
-  deleting: boolean;
   message: string | null;
   onClose: () => void;
-  onSave: (input: {
-    id?: string;
-    title: string;
-    summary: string;
-    section: Section;
-    status: "draft" | "published";
-    bodyHtml: string;
-    coverUrl: string | null;
-    videoUrl: string | null;
-    authorName: string;
-  }) => void;
-  onDelete: (id: string) => void;
+  onSave: (input: EditorInput) => void;
+  onDelete: () => void;
 }) {
+  const readOnly = !canEdit(account, article);
+  const isOwn = !article.id || article.authorId === account.userId;
+  const status = (article.status ?? "draft") as ArticleStatus;
+  const storageKey = `ct-editor-${article.id ?? "nova"}`;
+
   const bodyRef = useRef<HTMLDivElement>(null);
+  const savedRange = useRef<Range | null>(null);
   const [title, setTitle] = useState(article.title ?? "");
+  const [subtitle, setSubtitle] = useState(article.subtitle ?? "");
   const [summary, setSummary] = useState(article.summary ?? "");
   const [section, setSection] = useState<Section>((article.section as Section) ?? "Cidade");
-  const [status, setStatus] = useState<"draft" | "published">(
-    (article.status as "draft" | "published") ?? "draft",
-  );
   const [coverUrl, setCoverUrl] = useState<string | null>(article.coverUrl ?? null);
+  const [coverCaption, setCoverCaption] = useState(article.coverCaption ?? "");
+  const [coverCredit, setCoverCredit] = useState(article.coverCredit ?? "");
+  const [coverAlt, setCoverAlt] = useState(article.coverAlt ?? "");
   const [videoUrl, setVideoUrl] = useState(article.videoUrl ?? "");
-  const videoId = youtubeVideoId(videoUrl);
+  const [tagsText, setTagsText] = useState((article.tags ?? []).join(", "));
+  const [publishAt, setPublishAt] = useState(
+    isScheduled({ status, publishedAt: article.publishedAt ?? null })
+      ? toLocalInput(article.publishedAt)
+      : "",
+  );
+  const [reviewNote, setReviewNote] = useState("");
+  const [correctionNote, setCorrectionNote] = useState(article.correctionNote ?? "");
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
-  const savedRange = useRef<Range | null>(null);
   const [inColumn, setInColumn] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [recovered, setRecovered] = useState<{ savedAt: string } | null>(null);
+  const videoId = youtubeVideoId(videoUrl.trim());
+
+  const tags = useMemo(
+    () =>
+      tagsText
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .slice(0, 12),
+    [tagsText],
+  );
+
+  // Texto do corpo entra uma vez; depois o navegador cuida da edição.
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
+  }, [article.bodyHtml]);
+
+  // Cópia local: se a aba fechar ou a conexão cair, o texto volta ao abrir de novo.
+  useEffect(() => {
+    if (readOnly) return;
+    if (article.id) {
+      try {
+        window.localStorage.removeItem("ct-editor-nova");
+      } catch {
+        /* nada */
+      }
+    }
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const copy = JSON.parse(raw) as { savedAt: string; bodyHtml: string; title: string };
+      const serverTime = article.updatedAt ? new Date(article.updatedAt).getTime() : 0;
+      if (
+        new Date(copy.savedAt).getTime() > serverTime &&
+        copy.bodyHtml !== (article.bodyHtml ?? "")
+      ) {
+        setRecovered({ savedAt: copy.savedAt });
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
+    } catch {
+      /* armazenamento indisponível: segue sem cópia local */
+    }
+  }, [storageKey, readOnly, article.updatedAt, article.bodyHtml]);
+
+  const snapshot = () => ({
+    savedAt: new Date().toISOString(),
+    title,
+    subtitle,
+    summary,
+    section,
+    coverUrl,
+    coverCaption,
+    coverCredit,
+    coverAlt,
+    videoUrl,
+    tagsText,
+    bodyHtml: bodyRef.current?.innerHTML ?? "",
+  });
+
+  const markDirty = () => setDirty(true);
+
+  useEffect(() => {
+    if (!dirty || readOnly) return;
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(snapshot()));
+      } catch {
+        /* sem armazenamento local */
+      }
+    }, 800);
+    return () => window.clearTimeout(timer);
+  });
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  // Salvou no servidor (a data de atualização mudou): a cópia local não é mais necessária.
+  const lastSaved = useRef(article.updatedAt);
+  useEffect(() => {
+    if (article.updatedAt && article.updatedAt !== lastSaved.current) {
+      lastSaved.current = article.updatedAt;
+      setDirty(false);
+      try {
+        window.localStorage.removeItem(storageKey);
+      } catch {
+        /* nada a limpar */
+      }
+    }
+  }, [article.updatedAt, storageKey]);
+
+  const restoreCopy = () => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const c = JSON.parse(raw) as ReturnType<typeof snapshot>;
+      setTitle(c.title);
+      setSubtitle(c.subtitle);
+      setSummary(c.summary);
+      setSection(c.section);
+      setCoverUrl(c.coverUrl);
+      setCoverCaption(c.coverCaption);
+      setCoverCredit(c.coverCredit);
+      setCoverAlt(c.coverAlt);
+      setVideoUrl(c.videoUrl);
+      setTagsText(c.tagsText);
+      if (bodyRef.current) bodyRef.current.innerHTML = c.bodyHtml;
+      setDirty(true);
+    } catch {
+      setLocalError("Não foi possível recuperar a cópia local.");
+    }
+    setRecovered(null);
+  };
 
   useEffect(() => {
     const onSelect = () => {
@@ -404,14 +686,10 @@ function ArticleEditor({
     return () => document.removeEventListener("selectionchange", onSelect);
   }, []);
 
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.innerHTML = article.bodyHtml ?? "";
-  }, [article.bodyHtml]);
-
   const exec = (command: string, value?: string) => {
     bodyRef.current?.focus();
-    document.execCommand("styleWithCSS", false, "true");
     document.execCommand(command, false, value);
+    markDirty();
   };
 
   const insertHtml = (html: string) => {
@@ -442,6 +720,7 @@ function ArticleEditor({
       selection?.addRange(after);
       savedRange.current = after.cloneRange();
     }
+    markDirty();
   };
 
   const insertColumns = (count: 1 | 2 | 3) => {
@@ -477,10 +756,19 @@ function ArticleEditor({
     }
   };
 
-  const submit = (nextStatus?: "draft" | "published") => {
-    const finalStatus = nextStatus ?? status;
+  const submit = (nextStatus: ArticleStatus, extra: Partial<EditorInput> = {}) => {
     if (!title.trim()) {
-      setLocalError("Informe o título da reportagem.");
+      setLocalError("Informe o título da matéria.");
+      return;
+    }
+    if (nextStatus !== "draft" && !summary.trim()) {
+      setLocalError("Escreva o resumo: ele aparece nos cards da capa e na prévia do WhatsApp.");
+      return;
+    }
+    if (nextStatus !== "draft" && coverUrl && !coverAlt.trim()) {
+      setLocalError(
+        "Descreva a foto de capa no campo “Texto alternativo” (acessibilidade e Google).",
+      );
       return;
     }
     if (videoUrl.trim() && !videoId) {
@@ -488,31 +776,147 @@ function ArticleEditor({
       return;
     }
     setLocalError(null);
-    setStatus(finalStatus);
     onSave({
       ...(article.id ? { id: article.id } : {}),
       title: title.trim(),
+      subtitle: subtitle.trim(),
       summary: summary.trim(),
       section,
-      status: finalStatus,
+      status: nextStatus,
       bodyHtml: bodyRef.current?.innerHTML ?? "",
       coverUrl,
+      coverCaption: coverCaption.trim(),
+      coverCredit: coverCredit.trim(),
+      coverAlt: coverAlt.trim(),
       videoUrl: videoUrl.trim() || null,
-      authorName: article.authorName || authorName,
+      tags,
+      authorName: article.authorName || account.fullName || "Canal Transforma",
+      ...(account.isEditor && status === "published"
+        ? { correctionNote: correctionNote.trim() || null }
+        : {}),
+      ...extra,
     });
+  };
+
+  const scheduledIso = fromLocalInput(publishAt);
+  const scheduleInFuture = Boolean(scheduledIso && new Date(scheduledIso).getTime() > Date.now());
+
+  // Botões conforme papel e situação da matéria.
+  const actions = readOnly ? null : (
+    <div className="editor-head-actions">
+      <button type="button" className="ghost" onClick={() => setPreviewOpen(true)}>
+        <Eye size={16} /> Pré-visualizar
+      </button>
+      {status !== "published" ? (
+        <button type="button" className="ghost" disabled={saving} onClick={() => submit("draft")}>
+          Salvar rascunho
+        </button>
+      ) : null}
+      {account.isEditor ? (
+        <>
+          {status === "review" && !isOwn ? (
+            <button
+              type="button"
+              className="ghost"
+              disabled={saving}
+              onClick={() => setReturnOpen(true)}
+            >
+              Devolver ao repórter
+            </button>
+          ) : null}
+          {status === "published" ? (
+            <>
+              <button
+                type="button"
+                className="ghost"
+                disabled={saving}
+                onClick={() => submit("draft", { publishAt: null })}
+              >
+                Despublicar
+              </button>
+              <button
+                type="button"
+                className="save"
+                disabled={saving}
+                onClick={() =>
+                  submit("published", scheduleInFuture ? { publishAt: scheduledIso } : {})
+                }
+              >
+                {saving ? <Loader2 size={16} className="spin" /> : null}
+                Salvar alterações
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="save"
+              disabled={saving}
+              onClick={() =>
+                submit("published", { publishAt: scheduleInFuture ? scheduledIso : null })
+              }
+            >
+              {saving ? <Loader2 size={16} className="spin" /> : null}
+              {scheduleInFuture ? "Agendar publicação" : "Publicar agora"}
+            </button>
+          )}
+        </>
+      ) : (
+        <button type="button" className="save" disabled={saving} onClick={() => submit("review")}>
+          {saving ? <Loader2 size={16} className="spin" /> : null}
+          {status === "review" ? "Atualizar envio" : "Enviar para revisão"}
+        </button>
+      )}
+    </div>
+  );
+
+  const previewData = {
+    section,
+    color:
+      { Cidade: "blue", Política: "red", Serviços: "green", Esportes: "yellow" }[section] ?? "blue",
+    title,
+    subtitle,
+    summary,
+    coverUrl,
+    coverAlt,
+    coverCaption,
+    coverCredit,
+    videoId,
+    author: article.authorName || account.fullName || "Canal Transforma",
+    dateLabel: `Publicado em ${formatDate(scheduledIso ?? article.publishedAt ?? new Date().toISOString())}`,
+    bodyHtml: previewOpen ? sanitizeArticleHtml(bodyRef.current?.innerHTML ?? "") : "",
+    tags,
+    correctionNote: correctionNote || null,
   };
 
   return (
     <main className="admin-page">
       <aside className="admin-side">
         <img src={brand.logoOnCream} alt="Canal Transforma" width={720} height={186} />
-        <button type="button" onClick={onClose}>
-          ← Voltar à biblioteca
+        <button
+          type="button"
+          onClick={() => {
+            if (dirty) setLeaveOpen(true);
+            else onClose();
+          }}
+        >
+          ← Voltar às matérias
         </button>
         <p className="eyebrow">Informações da matéria</p>
+        <p
+          className={`editor-status status-${isScheduled({ status, publishedAt: article.publishedAt ?? null }) ? "scheduled" : status}`}
+        >
+          {statusLabel({ status, publishedAt: article.publishedAt ?? null })}
+        </p>
         <label>
           Editoria
-          <select value={section} onChange={(e) => setSection(e.target.value as Section)}>
+          <select
+            value={section}
+            disabled={readOnly}
+            onChange={(e) => {
+              setSection(e.target.value as Section);
+              markDirty();
+            }}
+          >
             {sections.map((s) => (
               <option key={s.slug} value={s.name}>
                 {s.name}
@@ -521,51 +925,97 @@ function ArticleEditor({
           </select>
         </label>
         <label>
-          Status
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as "draft" | "published")}
-          >
-            <option value="draft">Rascunho</option>
-            <option value="published">Publicada</option>
-          </select>
-        </label>
-        <label>
           Repórter responsável
-          <input readOnly value={article.authorName || authorName} />
+          <input readOnly value={article.authorName || account.fullName || ""} />
         </label>
-        <label>
-          Imagem de capa
-          <button
-            type="button"
-            className="cover-button"
-            onClick={async () => {
-              setLocalError(null);
-              const files = await pickFiles(false);
-              if (!files.length) return;
-              setUploading(true);
-              try {
-                const first = files[0];
-                if (!first) return;
-                const { url } = await uploadArticleMedia(first);
-                setCoverUrl(url);
-              } catch (error) {
-                setLocalError(error instanceof Error ? error.message : "Falha ao enviar a capa.");
-              } finally {
-                setUploading(false);
-              }
-            }}
-          >
-            {coverUrl ? "Trocar capa" : "Enviar capa"}
-          </button>
-        </label>
+        {readOnly && !coverUrl ? null : (
+          <label>
+            Imagem de capa
+            {readOnly ? null : (
+              <button
+                type="button"
+                className="cover-button"
+                onClick={async () => {
+                  setLocalError(null);
+                  const files = await pickFiles(false);
+                  if (!files.length) return;
+                  setUploading(true);
+                  try {
+                    const first = files[0];
+                    if (!first) return;
+                    const { url } = await uploadArticleMedia(first);
+                    setCoverUrl(url);
+                    markDirty();
+                  } catch (error) {
+                    setLocalError(
+                      error instanceof Error ? error.message : "Falha ao enviar a capa.",
+                    );
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
+              >
+                {coverUrl ? "Trocar capa" : "Enviar capa"}
+              </button>
+            )}
+          </label>
+        )}
         {coverUrl ? (
           <div className="cover-preview">
-            <img src={coverUrl} alt="Capa da reportagem" />
-            <button type="button" onClick={() => setCoverUrl(null)}>
-              Remover capa
-            </button>
+            <img src={coverUrl} alt={coverAlt || "Capa da matéria"} />
+            {readOnly ? null : (
+              <button
+                type="button"
+                onClick={() => {
+                  setCoverUrl(null);
+                  markDirty();
+                }}
+              >
+                Remover capa
+              </button>
+            )}
           </div>
+        ) : null}
+        {coverUrl ? (
+          <>
+            <label>
+              Texto alternativo
+              <input
+                value={coverAlt}
+                disabled={readOnly}
+                onChange={(e) => {
+                  setCoverAlt(e.target.value);
+                  markDirty();
+                }}
+                placeholder="O que aparece na foto"
+              />
+              <small className="field-hint">Para quem usa leitor de tela e para o Google.</small>
+            </label>
+            <label>
+              Legenda
+              <input
+                value={coverCaption}
+                disabled={readOnly}
+                onChange={(e) => {
+                  setCoverCaption(e.target.value);
+                  markDirty();
+                }}
+                placeholder="Ex.: Feira na Praça da República"
+              />
+            </label>
+            <label>
+              Crédito da foto
+              <input
+                value={coverCredit}
+                disabled={readOnly}
+                onChange={(e) => {
+                  setCoverCredit(e.target.value);
+                  markDirty();
+                }}
+                placeholder="Ex.: Maria Silva/Canal Transforma"
+              />
+            </label>
+          </>
         ) : null}
         <label>
           Vídeo do YouTube
@@ -573,144 +1023,228 @@ function ArticleEditor({
             type="url"
             inputMode="url"
             value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
+            disabled={readOnly}
+            onChange={(e) => {
+              setVideoUrl(e.target.value);
+              markDirty();
+            }}
             placeholder="https://youtu.be/..."
           />
-          <small className="field-hint">
-            Opcional. O vídeo aparece no topo da matéria, no lugar da capa.
-          </small>
+          <small className="field-hint">Opcional. O vídeo entra no topo, no lugar da capa.</small>
         </label>
         {videoId ? (
           <div className="cover-preview video-preview">
             <img src={youtubeThumb(videoId)} alt="Miniatura do vídeo" />
-            <button type="button" onClick={() => setVideoUrl("")}>
-              Remover vídeo
-            </button>
+            {readOnly ? null : (
+              <button
+                type="button"
+                onClick={() => {
+                  setVideoUrl("");
+                  markDirty();
+                }}
+              >
+                Remover vídeo
+              </button>
+            )}
           </div>
         ) : null}
-        {article.id ? (
-          <button type="button" className="danger" onClick={() => onDelete(article.id!)}>
-            <Trash2 size={15} /> {deleting ? "Excluindo..." : "Excluir reportagem"}
+        <label>
+          Assuntos (tags)
+          <input
+            value={tagsText}
+            disabled={readOnly}
+            onChange={(e) => {
+              setTagsText(e.target.value);
+              markDirty();
+            }}
+            placeholder="saúde, vacinação, bairro Jardim"
+          />
+          <small className="field-hint">Separe por vírgula. Até 12.</small>
+        </label>
+        {account.isEditor && !readOnly && status !== "published" ? (
+          <label>
+            Agendar publicação
+            <input
+              type="datetime-local"
+              value={publishAt}
+              onChange={(e) => setPublishAt(e.target.value)}
+            />
+            <small className="field-hint">Vazio publica na hora. Horário de Brasília.</small>
+          </label>
+        ) : null}
+        {account.isEditor && !readOnly && status === "published" ? (
+          <label>
+            Registrar correção
+            <textarea
+              value={correctionNote}
+              onChange={(e) => {
+                setCorrectionNote(e.target.value);
+                markDirty();
+              }}
+              placeholder="Ex.: A primeira versão informava o horário errado da feira."
+            />
+            <small className="field-hint">Aparece no fim da matéria, com a data.</small>
+          </label>
+        ) : null}
+        {canDelete(account, article) ? (
+          <button type="button" className="danger" onClick={onDelete}>
+            <Trash2 size={15} /> Excluir matéria
           </button>
         ) : null}
       </aside>
       <section className="editor-workspace">
         <div className="editor-head">
-          <p className="eyebrow">Editor de reportagem</p>
-          <div className="editor-head-actions">
-            <button type="button" className="ghost" onClick={() => submit("draft")}>
-              Salvar rascunho
-            </button>
-            <button type="button" className="save" onClick={() => submit()} disabled={saving}>
-              {saving ? <Loader2 size={16} className="spin" /> : null}
-              {status === "published" ? "Salvar e publicar" : "Salvar alterações"}
-            </button>
-          </div>
+          <p className="eyebrow">{readOnly ? "Leitura" : "Editor de matéria"}</p>
+          {actions}
+          {readOnly ? (
+            <div className="editor-head-actions">
+              <button type="button" className="ghost" onClick={() => setPreviewOpen(true)}>
+                <Eye size={16} /> Ver como no site
+              </button>
+            </div>
+          ) : null}
         </div>
 
+        {readOnly ? (
+          <p className="admin-flash">
+            {article.status === "published"
+              ? "Matéria publicada: só um editor altera. Fale com a edição se precisar de correção."
+              : "Esta matéria é de outra pessoa: você pode ler, mas não alterar."}
+          </p>
+        ) : null}
+        {article.reviewNote && status !== "published" ? (
+          <p className="admin-flash review-note">
+            <b>Observação da edição:</b> {article.reviewNote}
+          </p>
+        ) : null}
+        {recovered ? (
+          <p className="admin-flash">
+            Esta matéria tem alterações que não foram salvas ({formatDate(recovered.savedAt)}).{" "}
+            <button type="button" className="link-button" onClick={restoreCopy}>
+              Recuperar
+            </button>{" "}
+            ·{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                try {
+                  window.localStorage.removeItem(storageKey);
+                } catch {
+                  /* nada */
+                }
+                setRecovered(null);
+              }}
+            >
+              Descartar
+            </button>
+          </p>
+        ) : null}
         {localError ? <p className="admin-flash error">{localError}</p> : null}
         {message ? <p className="admin-flash">{message}</p> : null}
         {uploading ? <p className="admin-flash">Enviando arquivo...</p> : null}
 
         <label className="field">
-          Título
+          <span className="field-label">
+            Título
+            <small className={title.length > TITLE_IDEAL ? "is-over" : ""}>
+              {title.length}/{TITLE_IDEAL}
+            </small>
+          </span>
           <input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Título da reportagem"
+            disabled={readOnly}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              markDirty();
+            }}
+            placeholder="Título da matéria"
+          />
+        </label>
+        <label className="field field-subtitle">
+          Linha fina
+          <input
+            value={subtitle}
+            disabled={readOnly}
+            onChange={(e) => {
+              setSubtitle(e.target.value);
+              markDirty();
+            }}
+            placeholder="Frase logo abaixo do título que completa a informação"
           />
         </label>
         <label className="field">
-          Resumo
+          <span className="field-label">
+            Resumo
+            <small className={summary.length > SUMMARY_IDEAL ? "is-over" : ""}>
+              {summary.length}/{SUMMARY_IDEAL}
+            </small>
+          </span>
           <textarea
             value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="Resumo para os cards e a abertura da matéria"
+            disabled={readOnly}
+            onChange={(e) => {
+              setSummary(e.target.value);
+              markDirty();
+            }}
+            placeholder="Aparece nos cards da capa, no Google e na prévia do WhatsApp"
           />
         </label>
 
-        <div className="format">
-          <b>Texto</b>
-          <select
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) exec("fontName", e.target.value);
-              e.target.selectedIndex = 0;
-            }}
-            aria-label="Fonte"
-          >
-            <option value="">Fonte</option>
-            {FONTS.map((font) => (
-              <option key={font.label} value={font.value}>
-                {font.label}
-              </option>
-            ))}
-          </select>
-          <select
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) exec("fontSize", String(SIZES.indexOf(e.target.value) + 1 || 3));
-              e.target.selectedIndex = 0;
-            }}
-            aria-label="Tamanho"
-          >
-            <option value="">Tamanho</option>
-            {SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-          <select
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) exec("formatBlock", e.target.value);
-              e.target.selectedIndex = 0;
-            }}
-            aria-label="Estilo do parágrafo"
-          >
-            <option value="">Estilo</option>
-            <option value="p">Parágrafo</option>
-            <option value="h2">Título</option>
-            <option value="h3">Subtítulo</option>
-            <option value="blockquote">Citação</option>
-          </select>
-          <button type="button" title="Negrito" onClick={() => exec("bold")}>
-            <b>B</b>
-          </button>
-          <button type="button" title="Itálico" onClick={() => exec("italic")}>
-            <i>I</i>
-          </button>
-          <button type="button" title="Sublinhado" onClick={() => exec("underline")}>
-            <u>U</u>
-          </button>
-          <button
-            type="button"
-            title="Inserir link"
-            onClick={() => {
-              const selection = window.getSelection();
-              savedRange.current =
-                selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
-              setLinkText(selection ? selection.toString() : "");
-              setLinkUrl("");
-              setLinkOpen(true);
-            }}
-          >
-            <Link2 size={16} />
-          </button>
-          <button type="button" title="Alinhar à esquerda" onClick={() => exec("justifyLeft")}>
-            <AlignLeft size={16} />
-          </button>
-          <button type="button" title="Centralizar" onClick={() => exec("justifyCenter")}>
-            <AlignCenter size={16} />
-          </button>
-          <button type="button" title="Alinhar à direita" onClick={() => exec("justifyRight")}>
-            <AlignRight size={16} />
-          </button>
-          <button type="button" title="Justificar" onClick={() => exec("justifyFull")}>
-            <AlignJustify size={16} />
-          </button>
-        </div>
+        {readOnly ? null : (
+          <div className="format">
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) exec("formatBlock", e.target.value);
+                e.target.selectedIndex = 0;
+              }}
+              aria-label="Estilo do parágrafo"
+            >
+              <option value="">Estilo do texto</option>
+              <option value="p">Parágrafo</option>
+              <option value="h2">Intertítulo</option>
+              <option value="h3">Intertítulo menor</option>
+              <option value="blockquote">Citação</option>
+            </select>
+            <button type="button" title="Negrito" onClick={() => exec("bold")}>
+              <b>B</b>
+            </button>
+            <button type="button" title="Itálico" onClick={() => exec("italic")}>
+              <i>I</i>
+            </button>
+            <button
+              type="button"
+              title="Lista com marcadores"
+              onClick={() => exec("insertUnorderedList")}
+            >
+              <List size={16} />
+            </button>
+            <button type="button" title="Lista numerada" onClick={() => exec("insertOrderedList")}>
+              <ListOrdered size={16} />
+            </button>
+            <button
+              type="button"
+              title="Inserir link"
+              onClick={() => {
+                const selection = window.getSelection();
+                savedRange.current =
+                  selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+                setLinkText(selection ? selection.toString() : "");
+                setLinkUrl("");
+                setLinkOpen(true);
+              }}
+            >
+              <Link2 size={16} />
+            </button>
+            <button type="button" title="Alinhar à esquerda" onClick={() => exec("justifyLeft")}>
+              <AlignLeft size={16} />
+            </button>
+            <button type="button" title="Centralizar" onClick={() => exec("justifyCenter")}>
+              <AlignCenter size={16} />
+            </button>
+          </div>
+        )}
 
         {linkOpen ? (
           <div className="link-dialog-backdrop" role="dialog" aria-modal="true">
@@ -753,8 +1287,12 @@ function ArticleEditor({
                     if (selected && (!label || label === selected)) {
                       exec("createLink", href);
                     } else {
+                      const safe = (label || href).replace(
+                        /[<>&"]/g,
+                        (c) => `&#${c.charCodeAt(0)};`,
+                      );
                       insertHtml(
-                        `<a href="${href}" target="_blank" rel="noopener noreferrer">${label || href}</a>`,
+                        `<a href="${href.replace(/"/g, "%22")}" target="_blank" rel="noopener noreferrer">${safe}</a>`,
                       );
                     }
                     setLinkOpen(false);
@@ -767,13 +1305,52 @@ function ArticleEditor({
           </div>
         ) : null}
 
+        {returnOpen ? (
+          <div
+            className="link-dialog-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Devolver ao repórter"
+          >
+            <div className="link-dialog">
+              <h3>Devolver ao repórter</h3>
+              <label>
+                O que precisa mudar
+                <textarea
+                  autoFocus
+                  value={reviewNote}
+                  onChange={(e) => setReviewNote(e.target.value)}
+                  placeholder="Ex.: Confirmar o horário com a Prefeitura e ouvir um feirante."
+                />
+              </label>
+              <div className="link-dialog-actions">
+                <button type="button" className="ghost" onClick={() => setReturnOpen(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="save"
+                  disabled={!reviewNote.trim()}
+                  onClick={() => {
+                    setReturnOpen(false);
+                    submit("draft", { reviewNote: reviewNote.trim() });
+                  }}
+                >
+                  Devolver
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div
           ref={bodyRef}
           className="rich-placeholder"
-          contentEditable
+          contentEditable={!readOnly}
           suppressContentEditableWarning
-          data-placeholder="Comece a escrever a reportagem. Adicione texto, fotos, vídeos e blocos conforme necessário."
+          data-placeholder="Comece a escrever a matéria. Adicione texto, fotos, vídeos e blocos conforme necessário."
           onInput={() => {
+            markDirty();
             const body = bodyRef.current;
             if (!body) return;
             const last = body.lastElementChild;
@@ -787,44 +1364,80 @@ function ArticleEditor({
           }}
         />
 
-        <div className="block-actions">
-          {[1, 2, 3].map((n) => (
-            <button key={n} type="button" onClick={() => insertColumns(n as 1 | 2 | 3)}>
-              + {n} coluna{n > 1 ? "s" : ""}
-            </button>
-          ))}
-        </div>
+        {readOnly ? null : (
+          <>
+            <div className="block-actions">
+              {[1, 2, 3].map((n) => (
+                <button key={n} type="button" onClick={() => insertColumns(n as 1 | 2 | 3)}>
+                  + {n} coluna{n > 1 ? "s" : ""}
+                </button>
+              ))}
+            </div>
 
-        <div className="block-actions block-actions-insert">
-          <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
-          <button type="button" onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}>
-            + Texto
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              void withUpload(false, (url, kind) =>
-                kind === "video"
-                  ? `<figure><video controls src="${url}"></video></figure>`
-                  : `<figure><img src="${url}" alt="" /><figcaption data-ph="Legenda da imagem"><br></figcaption></figure>`,
-              )
-            }
-          >
-            + Foto ou vídeo
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              void withUpload(
-                true,
-                (url) => `<div class="article-gallery-item"><img src="${url}" alt="" /></div>`,
-              )
-            }
-          >
-            + Galeria
-          </button>
-        </div>
+            <div className="block-actions block-actions-insert">
+              <span>{inColumn ? "Inserir na coluna selecionada:" : "Inserir no cursor:"}</span>
+              <button
+                type="button"
+                onClick={() => insertHtml(`<p data-ph="Escreva aqui…"><br></p>`)}
+              >
+                + Texto
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void withUpload(false, (url, kind) =>
+                    kind === "video"
+                      ? `<figure><video controls src="${url}"></video></figure>`
+                      : `<figure><img src="${url}" alt="" /><figcaption data-ph="Legenda da imagem"><br></figcaption></figure>`,
+                  )
+                }
+              >
+                + Foto ou vídeo
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void withUpload(
+                    true,
+                    (url) => `<div class="article-gallery-item"><img src="${url}" alt="" /></div>`,
+                  )
+                }
+              >
+                + Galeria
+              </button>
+            </div>
+          </>
+        )}
       </section>
+
+      {leaveOpen ? (
+        <ConfirmDialog
+          title="Sair sem salvar?"
+          text="As alterações ficam guardadas só neste navegador. Você pode recuperá-las ao abrir a matéria de novo."
+          confirmLabel="Sair"
+          onCancel={() => setLeaveOpen(false)}
+          onConfirm={onClose}
+        />
+      ) : null}
+
+      {previewOpen ? (
+        <div
+          className="article-preview-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pré-visualização"
+        >
+          <div className="article-preview">
+            <div className="article-preview-bar">
+              <span>Pré-visualização: é assim que a matéria aparece no portal.</span>
+              <button type="button" onClick={() => setPreviewOpen(false)} aria-label="Fechar">
+                <X size={18} />
+              </button>
+            </div>
+            <ArticleView data={previewData} />
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

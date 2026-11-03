@@ -39,7 +39,7 @@ export const CodeEmail = ({ preview, title, intro, code, note }: CodeEmailProps)
     <Body style={main}>
       <Container style={container}>
         <Img
-          src="https://www.canaltransforma.com.br/brand/logo-sobre-creme.png"
+          src="https://canaltransforma.com.br/brand/logo-sobre-creme.png"
           width="180"
           height="47"
           alt="Canal Transforma"

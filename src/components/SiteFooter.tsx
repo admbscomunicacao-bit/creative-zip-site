@@ -13,7 +13,7 @@ export function SiteFooter() {
         </div>
         <div className="footer-contact">
           <strong>Fale com a gente</strong>
-          <a href="mailto:canaltransformaa@gmail.com">canaltransformaa@gmail.com</a>
+          <a href="mailto:contato@canaltransforma.com.br">contato@canaltransforma.com.br</a>
         </div>
         <div className="footer-social" aria-label="Redes sociais">
           {socialLinks.map((s) => (
@@ -25,7 +25,7 @@ export function SiteFooter() {
         </div>
         <span className="footer-copyright">
           © 2026 Canal Transforma · <Link to="/videos">Vídeos e lives</Link> ·{" "}
-          <Link to="/privacidade">Privacidade</Link>
+          <Link to="/privacidade">Privacidade</Link> · <Link to="/editorial">Área da redação</Link>
         </span>
       </div>
     </footer>
