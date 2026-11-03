@@ -16,85 +16,85 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
-          cover_alt: string
-          cover_caption: string
-          cover_credit: string
-          corrected_at: string | null
-          correction_note: string | null
-          published_by: string | null
-          review_note: string | null
-          reviewed_by: string | null
-          submitted_at: string | null
-          subtitle: string
-          tags: string[]
           author_id: string
           author_name: string
           body_html: string
           color: string
+          corrected_at: string | null
+          correction_note: string | null
+          cover_alt: string
+          cover_caption: string
+          cover_credit: string
           cover_url: string | null
           created_at: string
           id: string
           published_at: string | null
+          published_by: string | null
+          review_note: string | null
+          reviewed_by: string | null
           section: string
           slug: string
           status: Database["public"]["Enums"]["article_status"]
+          submitted_at: string | null
+          subtitle: string
           summary: string
+          tags: string[]
           title: string
           updated_at: string
           video_url: string | null
         }
         Insert: {
-          cover_alt?: string
-          cover_caption?: string
-          cover_credit?: string
-          corrected_at?: string | null
-          correction_note?: string | null
-          published_by?: string | null
-          review_note?: string | null
-          reviewed_by?: string | null
-          submitted_at?: string | null
-          subtitle?: string
-          tags?: string[]
           author_id: string
           author_name?: string
           body_html?: string
           color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
           cover_url?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
           section?: string
           slug: string
           status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
           summary?: string
+          tags?: string[]
           title?: string
           updated_at?: string
           video_url?: string | null
         }
         Update: {
-          cover_alt?: string
-          cover_caption?: string
-          cover_credit?: string
-          corrected_at?: string | null
-          correction_note?: string | null
-          published_by?: string | null
-          review_note?: string | null
-          reviewed_by?: string | null
-          submitted_at?: string | null
-          subtitle?: string
-          tags?: string[]
           author_id?: string
           author_name?: string
           body_html?: string
           color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
           cover_url?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
           section?: string
           slug?: string
           status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
           summary?: string
+          tags?: string[]
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -197,8 +197,8 @@ export type Database = {
           adsense_enabled: boolean
           id: number
           live_active: boolean
-          live_title: string
           live_started_at: string | null
+          live_title: string
           live_url: string | null
           updated_at: string
           updated_by: string | null
@@ -209,8 +209,8 @@ export type Database = {
           adsense_enabled?: boolean
           id?: number
           live_active?: boolean
-          live_title?: string
           live_started_at?: string | null
+          live_title?: string
           live_url?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -221,8 +221,8 @@ export type Database = {
           adsense_enabled?: boolean
           id?: number
           live_active?: boolean
-          live_title?: string
           live_started_at?: string | null
+          live_title?: string
           live_url?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -261,7 +261,6 @@ export type Database = {
         Returns: Database["public"]["Enums"]["account_status"]
       }
       can_use_editorial: { Args: { _user_id: string }; Returns: boolean }
-      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -270,6 +269,7 @@ export type Database = {
         Returns: boolean
       }
       is_editorial_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
       is_mfa_session: { Args: never; Returns: boolean }
     }
     Enums: {

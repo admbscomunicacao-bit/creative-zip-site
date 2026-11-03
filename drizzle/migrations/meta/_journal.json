@@ -15,6 +15,13 @@
       "when": 1793194114694,
       "tag": "0001_20261028130000_login_senha_e_codigo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793731415811,
+      "tag": "0002_20261103120000_revisao_editorial",
+      "breakpoints": true
     }
   ]
 }
