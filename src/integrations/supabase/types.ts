@@ -1,415 +1,404 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15";
-  };
+    PostgrestVersion: "14.15"
+  }
   public: {
     Tables: {
-      article_views: {
-        Row: {
-          article_id: string;
-          day: string;
-          views: number;
-        };
-        Insert: {
-          article_id: string;
-          day?: string;
-          views?: number;
-        };
-        Update: {
-          article_id?: string;
-          day?: string;
-          views?: number;
-        };
-        Relationships: [];
-      };
       articles: {
         Row: {
-          author_id: string;
-          author_name: string;
-          body_html: string;
-          color: string;
-          corrected_at: string | null;
-          correction_note: string | null;
-          cover_alt: string;
-          cover_caption: string;
-          cover_credit: string;
-          cover_url: string | null;
-          created_at: string;
-          id: string;
-          published_at: string | null;
-          published_by: string | null;
-          review_note: string | null;
-          reviewed_by: string | null;
-          section: string;
-          slug: string;
-          status: Database["public"]["Enums"]["article_status"];
-          submitted_at: string | null;
-          subtitle: string;
-          summary: string;
-          tags: string[];
-          title: string;
-          updated_at: string;
-          video_url: string | null;
-        };
+          author_id: string
+          author_name: string
+          body_html: string
+          color: string
+          corrected_at: string | null
+          correction_note: string | null
+          cover_alt: string
+          cover_caption: string
+          cover_credit: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          published_at: string | null
+          published_by: string | null
+          review_note: string | null
+          reviewed_by: string | null
+          section: string
+          slug: string
+          status: Database["public"]["Enums"]["article_status"]
+          submitted_at: string | null
+          subtitle: string
+          summary: string
+          tags: string[]
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
         Insert: {
-          author_id: string;
-          author_name?: string;
-          body_html?: string;
-          color?: string;
-          corrected_at?: string | null;
-          correction_note?: string | null;
-          cover_alt?: string;
-          cover_caption?: string;
-          cover_credit?: string;
-          cover_url?: string | null;
-          created_at?: string;
-          id?: string;
-          published_at?: string | null;
-          published_by?: string | null;
-          review_note?: string | null;
-          reviewed_by?: string | null;
-          section?: string;
-          slug: string;
-          status?: Database["public"]["Enums"]["article_status"];
-          submitted_at?: string | null;
-          subtitle?: string;
-          summary?: string;
-          tags?: string[];
-          title?: string;
-          updated_at?: string;
-          video_url?: string | null;
-        };
+          author_id: string
+          author_name?: string
+          body_html?: string
+          color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          section?: string
+          slug: string
+          status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
+          summary?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
         Update: {
-          author_id?: string;
-          author_name?: string;
-          body_html?: string;
-          color?: string;
-          corrected_at?: string | null;
-          correction_note?: string | null;
-          cover_alt?: string;
-          cover_caption?: string;
-          cover_credit?: string;
-          cover_url?: string | null;
-          created_at?: string;
-          id?: string;
-          published_at?: string | null;
-          published_by?: string | null;
-          review_note?: string | null;
-          reviewed_by?: string | null;
-          section?: string;
-          slug?: string;
-          status?: Database["public"]["Enums"]["article_status"];
-          submitted_at?: string | null;
-          subtitle?: string;
-          summary?: string;
-          tags?: string[];
-          title?: string;
-          updated_at?: string;
-          video_url?: string | null;
-        };
-        Relationships: [];
-      };
+          author_id?: string
+          author_name?: string
+          body_html?: string
+          color?: string
+          corrected_at?: string | null
+          correction_note?: string | null
+          cover_alt?: string
+          cover_caption?: string
+          cover_credit?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          section?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["article_status"]
+          submitted_at?: string | null
+          subtitle?: string
+          summary?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
-          action: string;
-          actor_id: string | null;
-          created_at: string;
-          detail: Json;
-          id: string;
-          target_user_id: string | null;
-        };
+          action: string
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          id: string
+          target_user_id: string | null
+        }
         Insert: {
-          action: string;
-          actor_id?: string | null;
-          created_at?: string;
-          detail?: Json;
-          id?: string;
-          target_user_id?: string | null;
-        };
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          target_user_id?: string | null
+        }
         Update: {
-          action?: string;
-          actor_id?: string | null;
-          created_at?: string;
-          detail?: Json;
-          id?: string;
-          target_user_id?: string | null;
-        };
-        Relationships: [];
-      };
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       editorial_verified_sessions: {
         Row: {
-          expires_at: string;
-          session_id: string;
-          user_id: string;
-          verified_at: string;
-        };
+          expires_at: string
+          session_id: string
+          user_id: string
+          verified_at: string
+        }
         Insert: {
-          expires_at: string;
-          session_id: string;
-          user_id: string;
-          verified_at?: string;
-        };
+          expires_at: string
+          session_id: string
+          user_id: string
+          verified_at?: string
+        }
         Update: {
-          expires_at?: string;
-          session_id?: string;
-          user_id?: string;
-          verified_at?: string;
-        };
-        Relationships: [];
-      };
+          expires_at?: string
+          session_id?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
-          avatar_url: string | null;
-          bio: string | null;
-          created_at: string;
-          email: string;
-          full_name: string;
-          id: string;
-          mfa_enrolled_at: string | null;
-          phone: string | null;
-          status: Database["public"]["Enums"]["account_status"];
-          terms_accepted_at: string | null;
-          updated_at: string;
-        };
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          mfa_enrolled_at: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["account_status"]
+          terms_accepted_at: string | null
+          updated_at: string
+        }
         Insert: {
-          avatar_url?: string | null;
-          bio?: string | null;
-          created_at?: string;
-          email?: string;
-          full_name?: string;
-          id: string;
-          mfa_enrolled_at?: string | null;
-          phone?: string | null;
-          status?: Database["public"]["Enums"]["account_status"];
-          terms_accepted_at?: string | null;
-          updated_at?: string;
-        };
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          mfa_enrolled_at?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
         Update: {
-          avatar_url?: string | null;
-          bio?: string | null;
-          created_at?: string;
-          email?: string;
-          full_name?: string;
-          id?: string;
-          mfa_enrolled_at?: string | null;
-          phone?: string | null;
-          status?: Database["public"]["Enums"]["account_status"];
-          terms_accepted_at?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          mfa_enrolled_at?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
-          adsense_client: string | null;
-          adsense_enabled: boolean;
-          id: number;
-          live_active: boolean;
-          live_started_at: string | null;
-          live_title: string;
-          live_url: string | null;
-          updated_at: string;
-          updated_by: string | null;
-          youtube_channel_id: string;
-        };
+          adsense_client: string | null
+          adsense_enabled: boolean
+          id: number
+          live_active: boolean
+          live_started_at: string | null
+          live_title: string
+          live_url: string | null
+          updated_at: string
+          updated_by: string | null
+          youtube_channel_id: string
+        }
         Insert: {
-          adsense_client?: string | null;
-          adsense_enabled?: boolean;
-          id?: number;
-          live_active?: boolean;
-          live_started_at?: string | null;
-          live_title?: string;
-          live_url?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-          youtube_channel_id?: string;
-        };
+          adsense_client?: string | null
+          adsense_enabled?: boolean
+          id?: number
+          live_active?: boolean
+          live_started_at?: string | null
+          live_title?: string
+          live_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          youtube_channel_id?: string
+        }
         Update: {
-          adsense_client?: string | null;
-          adsense_enabled?: boolean;
-          id?: number;
-          live_active?: boolean;
-          live_started_at?: string | null;
-          live_title?: string;
-          live_url?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-          youtube_channel_id?: string;
-        };
-        Relationships: [];
-      };
+          adsense_client?: string | null
+          adsense_enabled?: boolean
+          id?: number
+          live_active?: boolean
+          live_started_at?: string | null
+          live_title?: string
+          live_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          youtube_channel_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
-          created_at: string;
-          id: string;
-          role: Database["public"]["Enums"]["app_role"];
-          user_id: string;
-        };
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          role: Database["public"]["Enums"]["app_role"];
-          user_id: string;
-        };
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          role?: Database["public"]["Enums"]["app_role"];
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-    };
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
       account_status_of: {
-        Args: { _user_id: string };
-        Returns: Database["public"]["Enums"]["account_status"];
-      };
-      can_use_editorial: { Args: { _user_id: string }; Returns: boolean };
-      count_article_view: { Args: { _slug: string }; Returns: undefined };
-      most_read_articles: {
-        Args: { _days?: number; _limit?: number };
-        Returns: { slug: string; views: number }[];
-      };
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["account_status"]
+      }
+      can_use_editorial: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"];
-          _user_id: string;
-        };
-        Returns: boolean;
-      };
-      is_editorial_admin: { Args: { _user_id: string }; Returns: boolean };
-      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean };
-      is_mfa_session: { Args: never; Returns: boolean };
-    };
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_editorial_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_editorial_editor: { Args: { _user_id: string }; Returns: boolean }
+      is_mfa_session: { Args: never; Returns: boolean }
+    }
     Enums: {
-      account_status: "pending" | "approved" | "blocked";
-      app_role: "reporter" | "admin" | "editor";
-      article_status: "draft" | "review" | "published";
-    };
+      account_status: "pending" | "approved" | "blocked"
+      app_role: "reporter" | "admin" | "editor"
+      article_status: "draft" | "review" | "published"
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
+      [_ in never]: never
+    }
+  }
+}
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
+      Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R;
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
       }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
+      Insert: infer I
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I;
+        Insert: infer I
       }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
+      Update: infer U
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U;
+        Update: infer U
       }
       ? U
       : never
-    : never;
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
 
 export const Constants = {
   public: {
@@ -419,4 +408,4 @@ export const Constants = {
       article_status: ["draft", "review", "published"],
     },
   },
-} as const;
+} as const
