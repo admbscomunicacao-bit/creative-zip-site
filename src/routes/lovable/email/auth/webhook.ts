@@ -2,6 +2,7 @@ import * as React from 'react'
 import { EmailAPIError, sendLovableEmail } from '@lovable.dev/email-js'
 import { WebhookError, verifyWebhookRequest } from '@lovable.dev/webhooks-js'
 import { createFileRoute } from '@tanstack/react-router'
+import { brandMailConfigured, sendBrandMail } from '@/lib/brand-mail.server'
 import { SignupEmail } from '@/lib/email-templates/signup'
 import { InviteEmail } from '@/lib/email-templates/invite'
 import { MagicLinkEmail } from '@/lib/email-templates/magic-link'
@@ -13,13 +14,7 @@ import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 const SITE_NAME = "Canal Transforma"
 const ROOT_DOMAIN = "canaltransforma.com.br"
 
-// Primary delivery: the brand mailbox at UOL Host (Suite UOL).
-// The password lives only in the Lovable Cloud secret UOL_SMTP_PASSWORD.
-const SMTP_HOST = "smtp.suite.uol"
-const SMTP_PORT = 587 // STARTTLS
-const SMTP_USER = `contato@${ROOT_DOMAIN}`
-const SMTP_FROM = { name: SITE_NAME, email: SMTP_USER }
-
+// Primary delivery: the brand mailbox at UOL Host (see @/lib/brand-mail.server).
 // Fallback delivery: Lovable's sender on notify.canaltransforma.com.br.
 // Used while UOL_SMTP_PASSWORD is not set, or if the UOL server fails.
 const LOVABLE_SENDER_DOMAIN = `notify.${ROOT_DOMAIN}`
@@ -100,22 +95,6 @@ function parseAuthPayload(body: string): AuthEmailPayload {
 
 type Message = { to: string; subject: string; html: string; text: string }
 
-async function sendViaUol(message: Message, password: string) {
-  const { WorkerMailer } = await import('worker-mailer')
-  await WorkerMailer.send(
-    {
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: false,
-      startTls: true,
-      credentials: { username: SMTP_USER, password },
-      authType: ['plain', 'login'],
-      socketTimeoutMs: 15_000,
-      responseTimeoutMs: 15_000,
-    },
-    { from: SMTP_FROM, ...message },
-  )
-}
 
 async function handleAuthEmail(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
@@ -159,10 +138,9 @@ async function handleAuthEmail(request: Request): Promise<Response> {
     text: await render(element, { plainText: true }),
   }
 
-  const smtpPassword = process.env['UOL_SMTP_PASSWORD']
-  if (smtpPassword) {
+  if (brandMailConfigured()) {
     try {
-      await sendViaUol(message, smtpPassword)
+      await sendBrandMail(message)
       return Response.json({ success: true, sent: true, via: 'uol' })
     } catch (error) {
       console.error('[auth-email] UOL SMTP failed, falling back to Lovable sender:', error)

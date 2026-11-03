@@ -102,6 +102,8 @@ async function sessionIsVerified(supabase: RpcClient) {
 
 const CODE_TTL_HOURS = 24;
 const MAX_CODE_FAILURES = 5;
+const CODE_RESEND_SECONDS = 60;
+const MAX_CODES_PER_15_MIN = 5;
 
 type AuthClaims = Record<string, unknown>;
 
@@ -134,12 +136,63 @@ export const sendEditorialLoginCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const email = requirePasswordSession(context.claims);
+
+    // Caminho principal: o próprio site gera o código e envia pelo contato@ (UOL).
+    // Assim o código não depende do e-mail padrão do sistema de login.
+    const mail = await import("@/lib/brand-mail.server");
+    if (mail.brandMailConfigured()) {
+      // Limite de envio: o sistema de login limitava sozinho; aqui o próprio site limita.
+      const { supabaseAdmin: limiter } = await import("@/integrations/supabase/client.server");
+      const { data: recent } = await limiter
+        .from("audit_log")
+        .select("created_at")
+        .eq("actor_id", context.userId)
+        .eq("action", "login_code_sent")
+        .gte("created_at", new Date(Date.now() - 15 * 60_000).toISOString())
+        .order("created_at", { ascending: false });
+      const sent = recent ?? [];
+      if (sent[0] && Date.now() - new Date(sent[0].created_at).getTime() < CODE_RESEND_SECONDS * 1000) {
+        // O código enviado há menos de 60 s continua valendo: não manda outro.
+        return { ok: true, email, reused: true };
+      }
+      if (sent.length >= MAX_CODES_PER_15_MIN) {
+        throw new Error("Muitos códigos pedidos. Aguarde 15 minutos e tente de novo.");
+      }
+      try {
+        const { data: link, error: linkError } = await limiter.auth.admin.generateLink({
+          type: "magiclink",
+          email,
+        });
+        const code = link?.properties?.email_otp;
+        if (linkError || !code) throw linkError ?? new Error("generateLink sem email_otp");
+        const React = await import("react");
+        const { MagicLinkEmail } = await import("@/lib/email-templates/magic-link");
+        const message = await mail.renderBrandMessage(
+          email,
+          "Seu código de acesso | Canal Transforma",
+          React.createElement(MagicLinkEmail, { token: code }),
+        );
+        await mail.sendBrandMail(message);
+        await limiter.from("audit_log").insert({
+          actor_id: context.userId,
+          target_user_id: context.userId,
+          action: "login_code_sent",
+          detail: {},
+        });
+        return { ok: true, email, reused: false };
+      } catch (brandError) {
+        // Não trava o login: cai no e-mail do sistema de login logo abaixo.
+        console.error("[login-code] envio pelo contato@ falhou, usando a reserva:", brandError);
+      }
+    }
+
+    // Reserva (sem a senha da UOL, ou se a UOL falhar): e-mail do sistema de login.
     const { error } = await throwawayClient().auth.signInWithOtp({
       email,
       options: { shouldCreateUser: false },
     });
     if (error) throw new Error(error.message);
-    return { ok: true, email };
+    return { ok: true, email, reused: false };
   });
 
 // Etapa 2b: confere o código e marca ESTA sessão (a da senha) como verificada.

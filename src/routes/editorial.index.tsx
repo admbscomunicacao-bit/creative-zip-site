@@ -63,8 +63,8 @@ function EditorialLogin() {
   // O código é pedido pelo servidor, preso à sessão aberta com a senha.
   const sendLoginCode = async () => {
     try {
-      await requestCode();
-      return "";
+      const result = await requestCode();
+      return result?.reused ? "reused" : "";
     } catch (err) {
       return err instanceof Error ? err.message : String(err);
     }
@@ -95,7 +95,7 @@ function EditorialLogin() {
       // Senha confere: a sessão fica aberta, mas o banco só libera a redação
       // depois que o código do e-mail for confirmado para ela.
       const otpError = await sendLoginCode();
-      if (otpError) {
+      if (otpError && otpError !== "reused") {
         setError(friendlyAuthError(otpError));
         return;
       }
@@ -139,7 +139,8 @@ function EditorialLogin() {
     setBusy(true);
     try {
       const otpError = await sendLoginCode();
-      if (otpError) setError(friendlyAuthError(otpError));
+      if (otpError === "reused") setInfo("O código enviado há menos de 1 minuto ainda vale. Confira sua caixa de entrada e o spam.");
+      else if (otpError) setError(friendlyAuthError(otpError));
       else setInfo("Novo código enviado. Confira sua caixa de entrada e o spam.");
     } finally {
       setBusy(false);
