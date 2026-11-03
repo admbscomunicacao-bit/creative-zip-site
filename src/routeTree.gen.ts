@@ -19,6 +19,7 @@ import { Route as NoticiasDoDiaRouteImport } from './routes/noticias-do-dia'
 import { Route as NoticiasRecentesRouteImport } from './routes/noticias-recentes'
 import { Route as PoliticaEditorialRouteImport } from './routes/politica-editorial'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as ProgramacaoRouteImport } from './routes/programacao'
 import { Route as QuemSomosRouteImport } from './routes/quem-somos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as VideosRouteImport } from './routes/videos'
@@ -88,6 +89,11 @@ const PoliticaEditorialRoute = PoliticaEditorialRouteImport.update({
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramacaoRoute = ProgramacaoRouteImport.update({
+  id: '/programacao',
+  path: '/programacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuemSomosRoute = QuemSomosRouteImport.update({
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/politica-editorial': typeof PoliticaEditorialRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/politica-editorial': typeof PoliticaEditorialRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/noticias-recentes': typeof NoticiasRecentesRoute
   '/politica-editorial': typeof PoliticaEditorialRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/videos': typeof VideosRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/noticias-recentes'
     | '/politica-editorial'
     | '/privacidade'
+    | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
     | '/videos'
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/noticias-recentes'
     | '/politica-editorial'
     | '/privacidade'
+    | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
     | '/videos'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/noticias-recentes'
     | '/politica-editorial'
     | '/privacidade'
+    | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
     | '/videos'
@@ -398,6 +410,7 @@ export interface RootRouteChildren {
   NoticiasRecentesRoute: typeof NoticiasRecentesRoute
   PoliticaEditorialRoute: typeof PoliticaEditorialRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  ProgramacaoRoute: typeof ProgramacaoRoute
   QuemSomosRoute: typeof QuemSomosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VideosRoute: typeof VideosRoute
@@ -490,6 +503,13 @@ declare module '@tanstack/react-router' {
       path: '/privacidade'
       fullPath: '/privacidade'
       preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programacao': {
+      id: '/programacao'
+      path: '/programacao'
+      fullPath: '/programacao'
+      preLoaderRoute: typeof ProgramacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quem-somos': {
@@ -646,6 +666,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoticiasRecentesRoute: NoticiasRecentesRoute,
   PoliticaEditorialRoute: PoliticaEditorialRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  ProgramacaoRoute: ProgramacaoRoute,
   QuemSomosRoute: QuemSomosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VideosRoute: VideosRoute,

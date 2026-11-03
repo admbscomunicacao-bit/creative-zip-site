@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { hourLabel, nextProgram, weekdayName } from "@/data/programs";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import type { ChannelVideo } from "@/lib/site.functions";
@@ -26,6 +27,14 @@ export function VideoHub({
   showAllLink?: boolean;
 }) {
   const { liveActive, liveUrl, liveTitle } = useSiteSettings();
+  // Calculado só no navegador: o horário do servidor não serve para "hoje".
+  const [upcoming, setUpcoming] = useState<ReturnType<typeof nextProgram>>(null);
+  useEffect(() => {
+    const update = () => setUpcoming(nextProgram(new Date()));
+    update();
+    const id = window.setInterval(update, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
   const liveId = liveActive ? youtubeVideoId(liveUrl) : null;
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -45,6 +54,13 @@ export function VideoHub({
         <div>
           <p className="eyebrow">{liveActive ? "Estamos ao vivo" : "Lives semanais"}</p>
           <h2 id="video-hub-title">Canal Transforma no YouTube</h2>
+          {!liveActive && upcoming ? (
+            <Link to="/programacao" className="video-hub-schedule">
+              {upcoming.today ? "Hoje" : weekdayName[upcoming.program.weekday]}, às{" "}
+              {hourLabel(upcoming.program.time)}: <b>{upcoming.program.name}</b>, com{" "}
+              {upcoming.program.host} <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
         </div>
         <div className="video-hub-actions">
           {showAllLink && videos.length > 0 ? (

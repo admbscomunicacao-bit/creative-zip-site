@@ -6,16 +6,17 @@ import { LeadStory, MiniStory, NewsCard } from "@/components/StoryCard";
 import { VideoHub } from "@/components/VideoHub";
 import { sections } from "@/data/stories";
 import { brand, SITE_URL } from "@/lib/brand";
-import { listPublishedStories } from "@/lib/public-articles.functions";
+import { listMostRead, listPublishedStories } from "@/lib/public-articles.functions";
 import { getChannelVideos } from "@/lib/site.functions";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [{ stories }, videos] = await Promise.all([
+    const [{ stories }, videos, { stories: mostRead }] = await Promise.all([
       listPublishedStories({ data: { limit: 20 } }),
       getChannelVideos(),
+      listMostRead(),
     ]);
-    return { stories, videos };
+    return { stories, videos, mostRead };
   },
   staleTime: 30_000,
   head: () => ({
@@ -50,7 +51,7 @@ const colorClass: Record<string, string> = {
 };
 
 function Home() {
-  const { stories, videos } = Route.useLoaderData();
+  const { stories, videos, mostRead } = Route.useLoaderData();
   // Destaque: as quatro reportagens mais recentes com capa.
   const withCover = stories.filter((s) => s.image);
   const featured = (withCover.length ? withCover : stories).slice(0, 4);
@@ -217,6 +218,25 @@ function Home() {
             ))}
           </div>
         </section>
+
+        {mostRead.length >= 3 ? (
+          <section className="most-read" aria-labelledby="most-read-title">
+            <h2 id="most-read-title">Mais lidas da semana</h2>
+            <ol>
+              {mostRead.map((s, i) => (
+                <li key={s.slug}>
+                  <span className="most-read-rank" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <Link to="/noticia/$slug" params={{ slug: s.slug }}>
+                    <small className={`story-section section-${s.color}`}>{s.section}</small>
+                    <b>{s.title}</b>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
 
         <VideoHub videos={videos} />
 

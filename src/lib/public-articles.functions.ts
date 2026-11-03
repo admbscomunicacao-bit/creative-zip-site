@@ -168,3 +168,56 @@ export const listPublishedStories = createServerFn({ method: "GET" })
       hasMore: list.length > data.limit,
     };
   });
+
+// Uma leitura por IP e matéria a cada 30 min (por instância), para não inflar o número.
+const viewHits = new Map<string, number>();
+
+/** Soma uma leitura (chamado pela página da matéria depois que ela abre no navegador). */
+export const countArticleView = createServerFn({ method: "POST" })
+  .inputValidator((input: { slug: string }) =>
+    z.object({ slug: z.string().trim().min(1).max(120) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const { getRequestHeader } = await import("@tanstack/react-start/server");
+      const agent = getRequestHeader("user-agent") ?? "";
+      if (/bot|crawl|spider|preview|facebookexternalhit|whatsapp/i.test(agent)) return { ok: true };
+      const ip = getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "?";
+      const key = `${ip}:${data.slug}`;
+      const last = viewHits.get(key) ?? 0;
+      if (Date.now() - last < 30 * 60_000) return { ok: true };
+      viewHits.set(key, Date.now());
+      if (viewHits.size > 5000) viewHits.clear();
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.rpc("count_article_view", { _slug: data.slug });
+    } catch {
+      // Contagem é secundária: nunca atrapalha a leitura.
+    }
+    return { ok: true };
+  });
+
+/** As mais lidas dos últimos 7 dias, já no formato dos cards. */
+export const listMostRead = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = publicClient();
+    const { data: top } = await db.rpc("most_read_articles", { _days: 7, _limit: 5 });
+    const ranking = (top ?? []) as { slug: string; views: number }[];
+    if (!ranking.length) return { stories: [] as Story[] };
+    const { data: rows } = await db
+      .from("articles")
+      .select(LIST_SELECT)
+      .eq("status", "published")
+      .in(
+        "slug",
+        ranking.map((r) => r.slug),
+      );
+    const bySlug = new Map(((rows ?? []) as unknown as ListRow[]).map((r) => [r.slug, r]));
+    const stories = ranking
+      .map((r) => bySlug.get(r.slug))
+      .filter((r): r is ListRow => Boolean(r))
+      .map(toStory);
+    return { stories };
+  } catch {
+    return { stories: [] as Story[] };
+  }
+});

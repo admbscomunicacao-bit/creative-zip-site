@@ -101,7 +101,7 @@ const settingsInput = z.object({
   adsenseEnabled: z.boolean(),
 });
 
-export type SiteSettingsInput = z.infer<typeof settingsInput>;
+export type SiteSettingsInput = z.input<typeof settingsInput>;
 
 export const updateSiteSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

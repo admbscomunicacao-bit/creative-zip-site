@@ -113,6 +113,10 @@ export function SiteHeader() {
                 Vídeos e lives
                 <b>→</b>
               </Link>
+              <Link to="/programacao" className="menu-link" onClick={() => setOpen(false)}>
+                Programação
+                <b>→</b>
+              </Link>
             </nav>
             <nav aria-label="Sobre o Canal" className="menu-about">
               <Link to="/quem-somos" onClick={() => setOpen(false)}>

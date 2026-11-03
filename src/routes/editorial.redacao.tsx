@@ -421,6 +421,9 @@ function Newsroom() {
                       {article.status === "review" && article.submittedAt
                         ? ` · enviada em ${formatDate(article.submittedAt)}`
                         : ""}
+                      {article.status === "published" && article.views
+                        ? ` · ${article.views.toLocaleString("pt-BR")} leitura${article.views > 1 ? "s" : ""} em 30 dias`
+                        : ""}
                       {article.status === "draft" && article.reviewNote
                         ? " · devolvida com observações"
                         : ""}

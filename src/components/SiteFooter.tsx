@@ -28,8 +28,8 @@ export function SiteFooter() {
           <Link to="/expediente">Expediente</Link> ·{" "}
           <Link to="/politica-editorial">Política editorial</Link> ·{" "}
           <Link to="/fale-conosco">Envie sua pauta</Link> · <Link to="/videos">Vídeos e lives</Link>{" "}
-          · <Link to="/privacidade">Privacidade</Link> ·{" "}
-          <Link to="/editorial">Área da redação</Link>
+          · <Link to="/programacao">Programação</Link> · <Link to="/privacidade">Privacidade</Link>{" "}
+          · <Link to="/editorial">Área da redação</Link>
         </span>
       </div>
     </footer>

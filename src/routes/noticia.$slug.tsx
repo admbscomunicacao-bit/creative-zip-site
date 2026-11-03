@@ -5,9 +5,12 @@ import { NewsCard } from "@/components/StoryCard";
 import { ShareBar } from "@/components/ShareBar";
 import { ArticleView } from "@/components/ArticleView";
 import { getArticleAuthorSlug } from "@/lib/team.functions";
+import { useEffect } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { sections, type Section, type SectionColor } from "@/data/stories";
 import {
   formatStoryDate,
+  countArticleView,
   getPublishedArticle,
   listPublishedStories,
 } from "@/lib/public-articles.functions";
@@ -128,6 +131,11 @@ export const Route = createFileRoute("/noticia/$slug")({
 
 function Article() {
   const data = Route.useLoaderData();
+  const countView = useServerFn(countArticleView);
+  // Conta a leitura no navegador (robôs que só leem o HTML não entram na conta).
+  useEffect(() => {
+    void countView({ data: { slug: data.story.slug } }).catch(() => undefined);
+  }, [countView, data.story.slug]);
   const { story, bodyHtml, author, related, videoId, updatedLabel } = data;
   const sectionSlug = sections.find((s) => s.name === story.section)?.slug ?? "cidade";
   const url = `https://canaltransforma.com.br/noticia/${story.slug}`;

@@ -1165,3 +1165,29 @@ figure.article-art figcaption{padding:12px 16px;font-size:14px;line-height:1.45;
 /* Seção azul do YouTube encostada no rodapé: sem faixa creme no meio. */
 .home-shell:has(> .video-hub:last-child){padding-bottom:0}
 .home-shell:has(> .video-hub:last-child)+.site-footer-wrap{margin-top:0}
+/* Agenda das lives e Mais lidas */
+.video-hub-schedule{margin:10px 0 0;display:inline-block;padding:6px 12px;border-radius:999px;background:color-mix(in oklch,var(--paper) 14%,transparent);color:var(--paper);font-weight:700;font-size:14px}
+.most-read{margin:56px 0 0;padding:28px 32px;border:1px solid var(--line);border-radius:var(--r-card);background:var(--paper)}
+.most-read h2{margin:0 0 16px;font-size:clamp(22px,2.4vw,28px)}
+.most-read ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.most-read li{display:flex;gap:12px;align-items:flex-start}
+.most-read-rank{font-family:var(--font-display);font-weight:800;font-size:34px;line-height:1;color:var(--yellow);min-width:26px}
+.most-read a{display:grid;gap:4px;color:var(--text);text-decoration:none}
+.most-read a:hover b{color:var(--blue)}
+.most-read b{font-size:16px;line-height:1.3}
+.most-read small{font-size:12px}
+@media (width<=640px){.most-read{padding:22px 20px}}
+/* Programação ao vivo */
+a.video-hub-schedule{text-decoration:none}
+a.video-hub-schedule:hover{background:color-mix(in oklch,var(--paper) 24%,transparent)}
+.video-hub-schedule b{font-weight:800}
+.schedule-week{display:grid;gap:28px;margin:32px 0}
+.schedule-day h2{margin:0 0 12px;font-size:clamp(20px,2.2vw,24px)}
+.schedule-day ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.schedule-item{display:grid;grid-template-columns:76px 1fr;gap:18px;align-items:start;padding:18px 20px;border:1px solid var(--line);border-left:6px solid var(--section-accent,var(--brand));border-radius:var(--r-card);background:var(--paper)}
+.schedule-item time{font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink);line-height:1.1}
+.schedule-item h3{margin:0;font-size:19px}
+.schedule-host{margin:2px 0 8px;color:var(--muted);font-weight:600;font-size:14px}
+.schedule-item p:last-child{margin:0;line-height:1.5}
+.schedule-cta{display:inline-flex;gap:8px;align-items:center;padding:14px 22px;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:800;text-decoration:none}
+@media (width<=640px){.schedule-item{grid-template-columns:1fr;gap:6px}}

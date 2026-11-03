@@ -32,6 +32,8 @@ export type Article = {
   correctedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Leituras nos últimos 30 dias (só publicadas). */
+  views?: number;
 };
 
 type Row = {
@@ -121,7 +123,20 @@ export const listEditorialArticles = createServerFn({ method: "GET" })
       .select(SELECT)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return ((data ?? []) as unknown as Row[]).map(toArticle);
+    const articles = ((data ?? []) as unknown as Row[]).map(toArticle);
+
+    // Leituras dos últimos 30 dias (tabela nova: se ainda não existir, segue sem números).
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+    const { data: views } = await context.supabase
+      .from("article_views")
+      .select("article_id,views")
+      .gte("day", since);
+    if (views?.length) {
+      const total = new Map<string, number>();
+      for (const v of views) total.set(v.article_id, (total.get(v.article_id) ?? 0) + v.views);
+      for (const a of articles) if (total.has(a.id)) a.views = total.get(a.id)!;
+    }
+    return articles;
   });
 
 const articleInput = z.object({
