@@ -270,13 +270,17 @@ export const deleteArticle = createServerFn({ method: "POST" })
       .from("articles")
       .delete()
       .eq("id", data.id)
-      .select("id");
+      .select("id,cover_url,video_url,body_html");
     if (error) throw new Error(error.message);
     if (!removed?.length) {
       throw new Error(
         "Você não pode excluir esta matéria. Matéria publicada só o administrador exclui.",
       );
     }
+    const { articleMediaPaths, removeOrphanArticleMedia } = await import(
+      "@/lib/article-media.server"
+    );
+    await removeOrphanArticleMedia(articleMediaPaths(removed));
     return { ok: true };
   });
 

@@ -269,7 +269,17 @@ function CreateAccount() {
             checked={form.acceptedTerms}
             onChange={(e) => set("acceptedTerms", e.target.checked)}
           />
-          <span>Aceito os termos de uso e a política de privacidade do Canal Transforma.</span>
+          <span>
+            Aceito os{" "}
+            <a href="/termos" target="_blank" rel="noreferrer">
+              termos de uso
+            </a>{" "}
+            e a{" "}
+            <a href="/privacidade" target="_blank" rel="noreferrer">
+              política de privacidade
+            </a>{" "}
+            do Canal Transforma.
+          </span>
         </label>
         <button className="login-submit" type="submit" disabled={busy}>
           {busy ? "Criando conta..." : "Criar conta"} <b>→</b>

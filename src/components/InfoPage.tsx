@@ -32,6 +32,7 @@ export function InfoPage({
           <Link to="/politica-editorial">Política editorial</Link>
           <Link to="/fale-conosco">Envie sua pauta</Link>
           <Link to="/privacidade">Privacidade</Link>
+          <Link to="/termos">Termos de uso</Link>
         </nav>
       </article>
       <SiteFooter />

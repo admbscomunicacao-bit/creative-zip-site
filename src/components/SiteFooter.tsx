@@ -29,6 +29,7 @@ export function SiteFooter() {
           <Link to="/politica-editorial">Política editorial</Link> ·{" "}
           <Link to="/fale-conosco">Envie sua pauta</Link> · <Link to="/videos">Vídeos e lives</Link>{" "}
           · <Link to="/programacao">Programação</Link> · <Link to="/privacidade">Privacidade</Link>{" "}
+          · <Link to="/termos">Termos de uso</Link>{" "}
           · <Link to="/editorial">Área da redação</Link>
         </span>
       </div>

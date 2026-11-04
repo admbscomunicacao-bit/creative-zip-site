@@ -52,6 +52,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/politica-editorial", changefreq: "yearly", priority: "0.4" },
           { path: "/fale-conosco", changefreq: "yearly", priority: "0.3" },
           { path: "/privacidade", changefreq: "yearly", priority: "0.2" },
+          { path: "/termos", changefreq: "yearly", priority: "0.2" },
           ...(await listPublicTeam().catch(() => [])).map((m) => ({
             path: `/autor/${m.slug}`,
             changefreq: "weekly" as const,

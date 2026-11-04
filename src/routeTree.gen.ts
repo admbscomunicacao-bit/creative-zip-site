@@ -22,6 +22,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ProgramacaoRouteImport } from './routes/programacao'
 import { Route as QuemSomosRouteImport } from './routes/quem-somos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as AutorSlugRouteImport } from './routes/autor.$slug'
 import { Route as EditoriaSectionRouteImport } from './routes/editoria.$section'
@@ -104,6 +105,11 @@ const QuemSomosRoute = QuemSomosRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VideosRoute = VideosRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/videos': typeof VideosRoute
   '/autor/$slug': typeof AutorSlugRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/videos': typeof VideosRoute
   '/autor/$slug': typeof AutorSlugRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/programacao': typeof ProgramacaoRoute
   '/quem-somos': typeof QuemSomosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/videos': typeof VideosRoute
   '/autor/$slug': typeof AutorSlugRoute
   '/editoria/$section': typeof EditoriaSectionRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
+    | '/termos'
     | '/videos'
     | '/autor/$slug'
     | '/editoria/$section'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
+    | '/termos'
     | '/videos'
     | '/autor/$slug'
     | '/editoria/$section'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/quem-somos'
     | '/sitemap.xml'
+    | '/termos'
     | '/videos'
     | '/autor/$slug'
     | '/editoria/$section'
@@ -413,6 +425,7 @@ export interface RootRouteChildren {
   ProgramacaoRoute: typeof ProgramacaoRoute
   QuemSomosRoute: typeof QuemSomosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermosRoute: typeof TermosRoute
   VideosRoute: typeof VideosRoute
   AutorSlugRoute: typeof AutorSlugRoute
   EditoriaSectionRoute: typeof EditoriaSectionRoute
@@ -524,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos': {
@@ -669,6 +689,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProgramacaoRoute: ProgramacaoRoute,
   QuemSomosRoute: QuemSomosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermosRoute: TermosRoute,
   VideosRoute: VideosRoute,
   AutorSlugRoute: AutorSlugRoute,
   EditoriaSectionRoute: EditoriaSectionRoute,

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { EditorialShell, useRequireEditorialAccount } from "@/components/editorial-shell";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   deleteEditorialUser,
   listAuditLog,
@@ -62,6 +63,7 @@ function UsersAdmin() {
   const removeUser = useServerFn(deleteEditorialUser);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const users = useQuery({
     queryKey: ["editorial-users"],
@@ -197,16 +199,25 @@ function UsersAdmin() {
               type="button"
               className="editorial-secondary danger"
               disabled={busy}
-              onClick={() => {
-                if (!window.confirm("Excluir definitivamente esta conta editorial?")) return;
+              onClick={() => setConfirmDelete(true)}
+            >
+              Excluir conta
+            </button>
+          ) : null}
+          {confirmDelete ? (
+            <ConfirmDialog
+              title="Excluir conta?"
+              text={`A conta de ${selected.fullName || selected.email} e as matérias dela serão apagadas definitivamente.`}
+              confirmLabel={busy ? "Excluindo..." : "Excluir"}
+              onCancel={() => setConfirmDelete(false)}
+              onConfirm={() => {
+                setConfirmDelete(false);
                 void act(async () => {
                   await removeUser({ data: { userId: selected.id } });
                   select(undefined);
                 });
               }}
-            >
-              Excluir conta
-            </button>
+            />
           ) : null}
         </div>
 

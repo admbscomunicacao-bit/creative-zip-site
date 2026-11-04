@@ -580,7 +580,15 @@ export const deleteEditorialUser = createServerFn({ method: "POST" })
       throw new Error("Você não pode excluir a sua própria conta.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("articles").delete().eq("author_id", data.userId);
+    const { data: removedArticles } = await supabaseAdmin
+      .from("articles")
+      .delete()
+      .eq("author_id", data.userId)
+      .select("cover_url,video_url,body_html");
+    const { articleMediaPaths, removeOrphanArticleMedia } = await import(
+      "@/lib/article-media.server"
+    );
+    await removeOrphanArticleMedia(articleMediaPaths(removedArticles ?? []));
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
