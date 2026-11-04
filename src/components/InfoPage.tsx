@@ -28,9 +28,7 @@ export function InfoPage({
         <div className="article-body">{children}</div>
         <nav className="info-nav" aria-label="Sobre o Canal">
           <Link to="/quem-somos">Quem somos</Link>
-          <Link to="/expediente">Expediente</Link>
           <Link to="/politica-editorial">Política editorial</Link>
-          <Link to="/fale-conosco">Envie sua pauta</Link>
           <Link to="/privacidade">Privacidade</Link>
           <Link to="/termos">Termos de uso</Link>
         </nav>
